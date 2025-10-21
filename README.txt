@@ -1,17 +1,10 @@
 
-Business website for FTGC Global Ltd. energy consulting.
+Business website for FTGC Global Ltd. climate and energy consulting.
 
+FTC GLobal Ltd. is registered in British Columbia, Canada.
 
-Credits:
+Website credits:
    Design: HTML5 UP (CCA 3.0)
-   Images: Unsplash (unsplash.com)
+   Images: Lars Mai, TopPNG, ESSA Technologies
    Icons: Font Awesome
    Other: jQuery (jquery.com), Scrollex (github.com/ajlkn/jquery.scrollex), Responsive Tools (github.com/ajlkn/responsive-tools)
-
-
----
-This is Massively, a text-heavy, article-oriented design built around a huge background
-image (with a new parallax implementation I'm testing) and scroll effects (powered by
-Scrollex). A *slight* departure from all the one-pagers I've been doing lately, but one
-that fulfills a few user requests and makes use of some new techniques I've been wanting
-to try out. Enjoy it :)
