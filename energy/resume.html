@@ -10,7 +10,7 @@
 		<script type="text/javascript" src="https://cdn.emailjs.com/dist/email.min.js"></script>
 		<script type="text/javascript">
   			(function(){
-      			emailjs.init('XXXkmrMU6Iu3z71e1');
+      			emailjs.init('');
   			})();</script>
 
 	</head>
@@ -180,26 +180,28 @@
 				<!-- Footer -->
 					<footer id="footer">
 						<section>
-							<form method="post" action="#">
-								<div class="fields">
-									<div class="field">
-										<label for="name">Name</label>
-										<input type="text" name="name" id="name" />
-									</div>
-									<div class="field">
-										<label for="email">Email</label>
-										<input type="text" name="email" id="email" />
-									</div>
-									<div class="field">
-										<label for="message">Message</label>
-										<textarea name="message" id="message" rows="3"></textarea>
-									</div>
-								</div>
-								<ul class="actions">
-									<li><input type="submit" value="Send Message" /></li>
-								</ul>
-							</form>
+						<form id="contact-form">
+							<div class="fields">
+							<div class="field">
+								<label for="name">Name</label>
+								<input type="text" name="name" id="name" required />
+							</div>
+							<div class="field">
+								<label for="email">Email</label>
+								<input type="email" name="email" id="email" required />
+							</div>
+							<div class="field">
+								<label for="message">Message</label>
+								<textarea name="message" id="message" rows="3" required></textarea>
+							</div>
+							</div>
+							<ul class="actions">
+							<li><input type="submit" value="Send Message" /></li>
+							</ul>
+						</form>
 						</section>
+
+
 						<section class="split contact">
 							<section class="alt">
 								<h3>Address</h3>
@@ -238,6 +240,24 @@
 			<script src="assets/js/breakpoints.min.js"></script>
 			<script src="assets/js/util.js"></script>
 			<script src="assets/js/main.js"></script>
+		<!-- EmailJS integration -->
+			<script type="text/javascript" src="https://cdn.emailjs.com/dist/email.min.js"></script>
+			<script type="text/javascript">
+			(function(){
+				emailjs.init('XXXkmrMU6Iu3z71e1');
+			})();
+
+			document.getElementById('contact-form').addEventListener('submit', function(event) {
+				event.preventDefault(); // Prevent 405 error
+				emailjs.sendForm('service_m750zpe', 'template_taev40s', this)
+				.then(function() {
+					alert('Message sent successfully!');
+				}, function(error) {
+					alert('Failed to send message: ' + JSON.stringify(error));
+				});
+			});
+			</script>
+
 
 	</body>
 </html>
