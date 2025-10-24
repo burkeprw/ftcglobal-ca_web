@@ -2038,7 +2038,7 @@ input, select, textarea {
 	.modal {
 		display: none;
 		position: fixed;
-		z-index: 1000;
+		z-index: 9999;
 		left: 0;
 		top: 0;
 		width: 100%;
@@ -2054,6 +2054,8 @@ input, select, textarea {
 		width: 80%;
 		max-width: 600px;
 		box-shadow: 0 3px 15px rgba(0,0,0,0.4);
+		position: relative;
+		z-index: 10000;
 	}
 	.close-button {
 		float: right;
