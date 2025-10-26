@@ -21,7 +21,7 @@
 								<div class="content color0 span-3-75">
 									<h1 class="major">Climate Analytics<br />
 									Consulting</h1>
-									<p>With an academic background in the earth and atmospheric sciences, Patrick provides climate data analysis services to non-profits, governments, and businesses. He has expertise in climate data acquisition, atmospheric and ecological modeling, and visualization. This portfolio includes highlights of recent analytical projects.</p>
+									<p>With an academic background in the environmental and atmospheric sciences, Patrick provides climate data analysis services to non-profits, governments, and businesses. He has expertise in climate data acquisition, atmospheric and ecological modeling, and visualization. This portfolio includes highlights of recent analytical projects.</p>
 									<ul class="actions">
 										<li><a href="#first" class="button primary color1 circle icon solid fa-angle-right">Next</a></li>
 									</ul>
@@ -64,10 +64,8 @@
 							<section class="panel color1">
 								<div class="intro joined">
 									<h2 class="major">
-										<a href="#" popup="PopUp2">Analytics capabilities</a></h2>
+										<a href="#" popup="PopUp2">Analytics and Modeling</a></h2>
 									<p>Patrick uses statistical models, AI applications, and other analytical tools to help decision makers solve problems.</br>
-										<b>Expert:</b> Python, R, GIS, PowerBI.</br>
-										<b>Advanced:</b> machine learning, etc.</p>
 								</div>
 								<div class="inner">
 									<!-- Icons Row -->
@@ -86,22 +84,42 @@
 								</div>
 							</section>
 
-
-
+							<!-- Hidden popup content -->
+								<div id="PopUp2" style="display: none;">
+								<h3>Data Analytics adn Modeling</h3>
+								<p>Patrick has proficiency in data analytics, modeling, and dashboard development. He has academic training and substantial profesional experience conducting climate and environmental modeling
+									and leading teams in analytical exercises.</p>
+										<b>Expert:</b> Python, R, GIS, PowerBI. Including: <code>xarray</code>, <code>dask</code>, <code>dismo</code>, ESRI tools</br>
+										<b>Advanced:</b> Machine learning, Google Earth Engine, SQL, Tableau. Including: <code>scikit-learn</code>, </p>
+								<p>Patrick has experience with key climate and remote sensing datasets, such as Landsat, ERA5, TRMM, </p>
+									</div>
 
 
 						<!-- Panel (Spotlight) -->
 							<section class="panel spotlight large left">
 								<div class="content span-5">
 									<h2 class="major">
-										<a href="#" popup="PopUp3">Magna amet tempus</a></h2>
-									<p>Mauris a cursus velit. Nunc lacinia sollicitudin egestas bibendum, magna dui bibendum ex, sagittis commodo enim risus sed magna nulla. Vestibulum ut consequat velit. Curabitur vitae libero lorem. Quisque iaculis porttitor blandit. Nullam quis sagittis maximus. Sed vel nibh libero. Mauris et lorem pharetra massa lorem turpis congue pulvinar.</p>
+										<a href="#" popup="PopUp3">Deriving Bioclimatic Variables</a></h2>
+									<p>Patrick generated 19 bioclimatic variables for climate change studies in Kenya, Ethiopia, and Tanzania using locally downscaled high-temporal resolution data for 20 ensembles.</p>
 								</div>
 								<div class="image filtered tinted" data-position="top right">
-									<img src="images/pic03.jpg" alt="" />
+									<img src="images/pic06.jpg" alt="" />
 								</div>
 							</section>
 
+							<!-- Hidden popup content -->
+								<div id="PopUp3" style="display: none;">
+								<h3>Bioclimatic variables for East Africa</h3>
+								<p><i>University of Illinois Urbana-Champaign.</i><br />
+								<i>Timeline: 2023.</i></p>
+								<p>Climate impact assessments and adaptation planning are challenged by the scale of available data in many regions of the world. Global Climate Model (GCM) outputs are too coarse for local and 
+									regional assessments. To support regional climate planning in East Africa, a 2.5M km2 region of high geographic diversity and high climate vulnerability, Patrick derived a set of bioclimatic
+									variables from statistically downscaled daily temperature and precipitation data at 211 locations.</p>
+								<p>The updated dataset encnahces the value of the downscaled data for applications in agriculture, conservation, hydrology, and adaptation planning. For example, WorldClim variables are essential imputs in 
+									species distribution models, such as MaxEnt, and agriculatural yield models which inform climate adaptation planning.  
+								</p>
+							    <p>Statistically downscaled data used in the analysis can be found here: <a href="https://www.nature.com/articles/s41597-019-0038-1">https://doi.org/10.1038/s41597-019-0038-1</a>.</p>
+								</div>
 
 						<!-- Panel -->
 							<section class="panel">
@@ -197,7 +215,7 @@
 
 			document.getElementById('contact-form').addEventListener('submit', function(event) {
 				event.preventDefault(); // Prevent 405 error
-				emailjs.sendForm('service_m750zpe', 'template_watvl9', this)
+				emailjs.sendForm('service_m750zpe', 'template_4watvl9', this)
 				.then(function() {
 					alert('Message sent successfully!');
 				}, function(error) {
