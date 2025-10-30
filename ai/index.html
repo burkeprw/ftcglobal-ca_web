@@ -3,9 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FTCG AI Consulting</title>
-
-    <link rel="stylesheet" href="main.css">
+    <title>AI Consulting</title>
+    <link rel="stylesheet" href="assets/css/main.css" />
 </head>
 
 <body>
@@ -19,7 +18,6 @@
     <!-- Chat Interface -->
     <div class="chat-container" id="chatContainer">
         <div class="chat-header">
-            <h2><span class="status-indicator"></span>MemGPT Agent</h2>
             <div class="header-buttons">
                 <button class="header-button" onclick="toggleMemory()">View Memory</button>
                 <button class="header-button" onclick="resetMemory()">Reset Memory</button>
@@ -62,7 +60,7 @@
             document.getElementById('chatContainer').style.display = 'flex';
             
             // Send initial greeting
-            addMessage("I'm an AI Agent that can helps enhance your business. Tell me about a business challenge you are struggling with. ", 'ai');
+            addMessage("I'm an AI Agent that will help connect you with a consultant to enhance your business. Tell me about a business challenge you are struggling with.", 'ai');
         }
 
         function handleKeyPress(event) {
