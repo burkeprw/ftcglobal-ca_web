@@ -1,6 +1,6 @@
 """
 MemGPT-style Agent with Self-Editing Memory
-A simple chatbot with persistent memory that can be edited by the AI
+Flask version for local testing
 """
 
 from flask import Flask, request, jsonify, send_from_directory
@@ -12,22 +12,17 @@ from datetime import datetime
 import re
 from dotenv import load_dotenv
 
-# Load environment variables from .env file
-load_dotenv()
+load_dotenv() # Load environment variables from .env file
 
 app = Flask(__name__)
 CORS(app)
 
-# Initialize Claude client (user needs to add their API key)
-# Get your API key from https://console.anthropic.com/
-CLAUDE_API_KEY = os.getenv('CLAUDE_API_KEY', 'YOUR_API_KEY_HERE')  # Uses .env file or default
+CLAUDE_API_KEY = os.getenv('CLAUDE_API_KEY', 'YOUR_API_KEY_HERE')
 if CLAUDE_API_KEY == 'YOUR_API_KEY_HERE':
     print("⚠️  WARNING: No API key found! Please set CLAUDE_API_KEY in .env file or app.py")
-    
-client = anthropic.Anthropic(api_key=CLAUDE_API_KEY)
 
-# Recommended model for simple chatbot
-MODEL = "claude-3-5-haiku-20241022"  # Fast and cost-effective
+client = anthropic.Anthropic(api_key=CLAUDE_API_KEY)
+MODEL = "claude-3-5-haiku-20241022"  # Recommended model for simple chatbot: Fast and cost-effective
 
 class MemoryAgent:
     def __init__(self, memory_file="memory.json"):
@@ -218,9 +213,9 @@ if __name__ == '__main__':
     print("MemGPT Agent Server Starting...")
     print(f"Using Model: {MODEL}")
     print("=" * 50)
-    print("IMPORTANT: Replace 'YOUR_API_KEY_HERE' with your actual Claude API key")
-    print("Get your key from: https://console.anthropic.com/")
-    print("=" * 50)
+    #print("IMPORTANT: Replace 'YOUR_API_KEY_HERE' with your actual Claude API key")
+    #print("Get your key from: https://console.anthropic.com/")
+    #print("=" * 50)
     print("Server running on http://localhost:5000")
     print("=" * 50)
     app.run(debug=True, host='0.0.0.0', port=5000)
