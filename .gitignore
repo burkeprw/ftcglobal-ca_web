@@ -1,0 +1,15 @@
+# Ignore compiled output
+
+
+# Ignore log files
+*.log
+
+# Ignore temporary files
+temp/
+*~
+
+# Ignore sensitive configuration files
+config.ini
+.env
+
+# Ignore node_modules directory
