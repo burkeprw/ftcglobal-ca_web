@@ -1,0 +1,20 @@
+{
+	"name": "ai",
+	"version": "1.0.0",
+	"private": true,
+	"scripts": {
+		"deploy": "wrangler pages deploy",
+		"dev": "wrangler pages dev public --local",
+		"start": "wrangler pages dev",
+		"db:init": "wrangler d1 execute webAgnt-db --local --file=./schema/database.sql",
+		"db:init:remote": "wrangler d1 execute webAgnt-db --remote --file=./schema/database.sql",
+		"db:query": "wrangler d1 execute webAgnt-db --local --command",
+		"test:api": "node scripts/test-api.js"
+	},
+	"devDependencies": {
+		"wrangler": "^4.45.3"
+	},
+	"dependencies": {
+		"@anthropic-ai/sdk": "^0.24.0"
+	}
+}

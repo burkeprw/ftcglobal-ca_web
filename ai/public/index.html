@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Consulting</title>
+    <link rel="stylesheet" href="assets/css/main.css">
+</head>
+
+<body>
+    <!-- Landing Page -->
+    <div class="landing-container" id="landingPage">
+        <h1>AI Consulting and Custom Agents</h1>
+        <p>That help your small business grow, scale, and thrive.</p>
+        <button class="start-button" onclick="startChat()">Let's Chat</button>
+    </div> <!-- FIXED: Added missing closing div here -->
+
+    <!-- Chat Interface -->
+    <div class="chat-container" id="chatContainer">
+        <div class="chat-header">
+            <h2>AI Business Agent</h2>
+            <div class="header-buttons">
+                <button class="header-button" onclick="toggleMemory()">View Memory</button>
+                <button class="header-button" onclick="resetMemory()">Reset Memory</button>
+            </div>
+        </div>
+        
+        <div class="chat-messages" id="chatMessages">
+            <!-- Messages will appear here -->
+        </div>
+        
+        <div class="typing-indicator" id="typingIndicator">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+        
+        <div class="chat-input-container">
+            <input type="text" 
+                   class="chat-input" 
+                   id="chatInput" 
+                   placeholder="Type your message..." 
+                   onkeypress="handleKeyPress(event)"
+                   disabled>
+            <button class="send-button" id="sendButton" onclick="sendMessage()" disabled>Send</button>
+        </div>
+    </div>
+
+    <!-- Memory Panel -->
+    <div class="memory-panel" id="memoryPanel">
+        <button class="close-memory" onclick="toggleMemory()">×</button>
+        <div class="memory-content">
+            <h3>Agent Memory State</h3>
+            <div id="memoryDisplay"></div>
+        </div>
+    </div>
+
+    <!-- Conversation Stats Overlay -->
+    <div class="conversation-stats" id="conversationStats" style="display: none;">
+        <span class="stat-item">Messages: <span id="messageCount">0</span>/10</span>
+        <span class="stat-item">Visitor ID: <span id="visitorIdDisplay">-</span></span>
+    </div>
+
+    <!-- Load the chat.js script -->
+    <script src="/assets/js/chat.js"></script>
+</body>
+</html>
