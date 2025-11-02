@@ -24,32 +24,43 @@ export class MemoryAgent {
   async loadMemory() {
     // Load visitor's memory from database
     const visitor = await this.env.DB.prepare(
-      'SELECT memory_state, name, email, company, role, preferences FROM visitors WHERE id = ?'
+        'SELECT memory_state, name, email, company, role, preferences FROM visitors WHERE id = ?'
     ).bind(this.visitorId).first();
 
     if (visitor && visitor.memory_state) {
-      this.memory = JSON.parse(visitor.memory_state);
+        this.memory = JSON.parse(visitor.memory_state);
+        
+        // Ensure all array fields are actually arrays
+        if (!Array.isArray(this.memory.core_memory.important_facts)) {
+            this.memory.core_memory.important_facts = [];
+        }
+        if (!Array.isArray(this.memory.recent_topics)) {
+            this.memory.recent_topics = [];
+        }
+        if (!Array.isArray(this.memory.identified_challenges)) {
+            this.memory.identified_challenges = [];
+        }
     } else {
-      // Initialize new memory structure
-      this.memory = {
-        core_memory: {
-          user_name: visitor?.name || 'Unknown',
-          email: visitor?.email || null,
-          company: visitor?.company || null,
-          role: visitor?.role || null,
-          relationship: 'New acquaintance',
-          personality_notes: '',
-          important_facts: []
-        },
-        conversation_summary: '',
-        recent_topics: [],
-        identified_challenges: [],
-        user_preferences: JSON.parse(visitor?.preferences || '{}'),
-        interaction_count: 0,
-        last_interaction: null
-      };
+        // Initialize new memory structure with proper arrays
+        this.memory = {
+            core_memory: {
+                user_name: visitor?.name || 'Unknown',
+                email: visitor?.email || null,
+                company: visitor?.company || null,
+                role: visitor?.role || null,
+                relationship: 'New acquaintance',
+                personality_notes: '',
+                important_facts: []  // Ensure this is an array
+            },
+            conversation_summary: '',
+            recent_topics: [],  // Ensure this is an array
+            identified_challenges: [],  // Ensure this is an array
+            user_preferences: JSON.parse(visitor?.preferences || '{}'),
+            interaction_count: 0,
+            last_interaction: null
+        };
     }
-  }
+}
 
   async loadOrCreateConversation() {
     // Check for active conversation
@@ -102,37 +113,39 @@ export class MemoryAgent {
   }
 
   applyMemoryEdits(edits) {
-    for (const { key, value } of edits) {
-      const keys = key.split('.');
-      let current = this.memory;
-      
-      // Navigate to the correct location
-      for (let i = 0; i < keys.length - 1; i++) {
-        if (!current[keys[i]]) {
-          current[keys[i]] = {};
-        }
-        current = current[keys[i]];
+      for (const { key, value } of edits) {
+          const keys = key.split('.');
+          let current = this.memory;
+          
+          // Navigate to the correct location
+          for (let i = 0; i < keys.length - 1; i++) {
+              if (!current[keys[i]]) {
+                  current[keys[i]] = {};
+              }
+              current = current[keys[i]];
+          }
+          
+          // Apply the value
+          const lastKey = keys[keys.length - 1];
+          
+          // Handle different value types
+          if (value.toLowerCase() === 'true') {
+              current[lastKey] = true;
+          } else if (value.toLowerCase() === 'false') {
+              current[lastKey] = false;
+          } else if (value.startsWith('[') && value.endsWith(']')) {
+              // List append or initialize
+              const listItem = value.slice(1, -1);
+              if (!Array.isArray(current[lastKey])) {
+                  current[lastKey] = [];  // Initialize as array if not already
+              }
+              if (listItem) {  // Only add non-empty items
+                  current[lastKey].push(listItem);
+              }
+          } else {
+              current[lastKey] = value;
+          }
       }
-      
-      // Apply the value
-      const lastKey = keys[keys.length - 1];
-      
-      // Handle different value types
-      if (value.toLowerCase() === 'true') {
-        current[lastKey] = true;
-      } else if (value.toLowerCase() === 'false') {
-        current[lastKey] = false;
-      } else if (value.startsWith('[') && value.endsWith(']')) {
-        // List append
-        const listItem = value.slice(1, -1);
-        if (!Array.isArray(current[lastKey])) {
-          current[lastKey] = [];
-        }
-        current[lastKey].push(listItem);
-      } else {
-        current[lastKey] = value;
-      }
-    }
   }
 
   async saveMemory() {
@@ -184,6 +197,18 @@ export class MemoryAgent {
   }
 
   getMemoryContext() {
+      // Safety check for identified_challenges
+    if (!Array.isArray(this.memory.core_memory.important_facts)) {
+        this.memory.core_memory.important_facts = [];
+    }
+    if (!Array.isArray(this.memory.recent_topics)) {
+        this.memory.recent_topics = [];
+    }
+    if (!Array.isArray(this.memory.identified_challenges)) {
+        this.memory.identified_challenges = [];
+    }
+    
+    
     return `
 === CURRENT MEMORY STATE ===
 Core Memory:

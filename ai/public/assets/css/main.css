@@ -9,7 +9,7 @@
 
 body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-    background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+    background: linear-gradient(135deg, #232323 0%, #0d1d28 100%);
     height: 100vh;
     display: flex;
     justify-content: center;
@@ -111,8 +111,8 @@ body {
 
 /* Chat Container - Dark Theme */
 .chat-container {
-    background: #4A4A4A;
-    border-radius: 20px;
+    background: #232323;
+    border-radius: 20px;  
     width: 90%;
     max-width: 600px;
     height: 80vh;
@@ -124,43 +124,6 @@ body {
     border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.chat-header {
-    background: linear-gradient(135deg, #3a3a3a 0%, #2a2a2a 100%);
-    color: white;
-    padding: 1.5rem;
-    border-radius: 20px 20px 0 0;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.chat-header h2 {
-    font-weight: 400;
-    font-size: 1.3rem;
-    color: #ffffff;
-}
-
-.header-buttons {
-    display: flex;
-    gap: 10px;
-}
-
-.header-button {
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    color: white;
-    padding: 0.5rem 1rem;
-    border-radius: 20px;
-    cursor: pointer;
-    font-size: 0.9rem;
-    transition: all 0.3s ease;
-}
-
-.header-button:hover {
-    background: rgba(255, 255, 255, 0.2);
-    border-color: rgba(255, 255, 255, 0.3);
-}
 
 /* Chat Messages Area - Dark Interior */
 .chat-messages {
@@ -199,20 +162,16 @@ body {
 
 .user-message {
     align-self: flex-end;
-    background: linear-gradient(135deg, #8b7aa8 0%, #6b5a88 100%);
-    color: white;
-    padding: 1rem 1.5rem;
-    border-radius: 20px 20px 5px 20px;
-    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
+    color: #ffffff;
+    padding: 0.5rem 0;
+    animation: messageSlide 0.3s ease-out;
 }
 
 .ai-message {
     align-self: flex-start;
-    background: #2a2a2a;
-    color: #e0e0e0;
-    padding: 1rem 1.5rem;
-    border-radius: 20px 20px 20px 5px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #b0b0b0;  /* Light grey */
+    padding: 0.5rem 0;
+    animation: messageSlide 0.3s ease-out;
 }
 
 .typing-indicator {
@@ -249,7 +208,7 @@ body {
     display: flex;
     gap: 1rem;
     background: #3a3a3a;
-    border-radius: 0 0 20px 20px;
+    border-radius: 0 0 20px 20px;  /* Keep bottom corners rounded */
 }
 
 .chat-input {
@@ -530,4 +489,71 @@ body {
 .send-button:disabled {
     opacity: 0.5;
     cursor: not-allowed;
+}
+
+/* Formatted content styles for AI messages */
+.ai-message p {
+    margin: 0 0 0.75rem 0;
+    line-height: 1.5;
+}
+
+.ai-message p:last-child {
+    margin-bottom: 0;
+}
+
+.ai-message strong {
+    color: #ffffff;
+    font-weight: 600;
+}
+
+.ai-message ul {
+    margin: 0.75rem 0;
+    padding-left: 1.5rem;
+    list-style-type: none;
+}
+
+.ai-message ul li {
+    position: relative;
+    margin-bottom: 0.5rem;
+    padding-left: 1rem;
+    line-height: 1.5;
+}
+
+.ai-message ul li:before {
+    content: "•";
+    position: absolute;
+    left: 0;
+    color: #8b7aa8;
+    font-weight: bold;
+}
+
+.ai-message ul li:last-child {
+    margin-bottom: 0;
+}
+
+/* Ensure proper spacing between different content blocks */
+.ai-message > *:first-child {
+    margin-top: 0;
+}
+
+.ai-message > *:last-child {
+    margin-bottom: 0;
+}
+
+/* Numbered list styles for AI messages */
+.ai-message ol {
+    margin: 0.75rem 0;
+    padding-left: 1.5rem;
+    list-style-type: decimal;
+    counter-reset: list-counter;
+}
+
+.ai-message ol li {
+    margin-bottom: 0.5rem;
+    line-height: 1.5;
+    padding-left: 0.5rem;
+}
+
+.ai-message ol li:last-child {
+    margin-bottom: 0;
 }

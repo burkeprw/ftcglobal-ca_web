@@ -13,18 +13,10 @@
         <h1>AI Consulting and Custom Agents</h1>
         <p>That help your small business grow, scale, and thrive.</p>
         <button class="start-button" onclick="startChat()">Let's Chat</button>
-    </div> <!-- FIXED: Added missing closing div here -->
+    </div>
 
     <!-- Chat Interface -->
-    <div class="chat-container" id="chatContainer">
-        <div class="chat-header">
-            <h2>AI Business Agent</h2>
-            <div class="header-buttons">
-                <button class="header-button" onclick="toggleMemory()">View Memory</button>
-                <button class="header-button" onclick="resetMemory()">Reset Memory</button>
-            </div>
-        </div>
-        
+    <div class="chat-container" id="chatContainer">       
         <div class="chat-messages" id="chatMessages">
             <!-- Messages will appear here -->
         </div>
@@ -53,12 +45,6 @@
             <h3>Agent Memory State</h3>
             <div id="memoryDisplay"></div>
         </div>
-    </div>
-
-    <!-- Conversation Stats Overlay -->
-    <div class="conversation-stats" id="conversationStats" style="display: none;">
-        <span class="stat-item">Messages: <span id="messageCount">0</span>/10</span>
-        <span class="stat-item">Visitor ID: <span id="visitorIdDisplay">-</span></span>
     </div>
 
     <!-- Load the chat.js script -->

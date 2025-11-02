@@ -175,7 +175,53 @@ function addMessage(content, type) {
     const messagesContainer = document.getElementById('chatMessages');
     const messageDiv = document.createElement('div');
     messageDiv.className = `message ${type}-message`;
-    messageDiv.textContent = content;
+
+    // Only format AI messages, leave user messages plain
+    if (type === 'ai') {
+        // Convert markdown-style formatting to HTML
+        let formattedContent = content
+            // Convert bold text **text** or __text__
+            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+            .replace(/__(.*?)__/g, '<strong>$1</strong>')
+            
+            // Convert line breaks (double newline for paragraphs)
+            .replace(/\n\n/g, '</p><p>')
+            .replace(/\n/g, '<br>')
+            
+            // Wrap in paragraph tags
+            .replace(/^/, '<p>')
+            .replace(/$/, '</p>')
+            
+            // Convert numbered lists (1. 2. 3. etc)
+            .replace(/<p>[\s]*(\d+)\.\s+(.*?)(?=<br>|<\/p>)/g, '<li data-number="$1">$2</li>')
+            .replace(/(<li data-number="\d+">.*?<\/li>)(?:<br>)?/g, '$1')
+            .replace(/(<li data-number="\d+">.*?<\/li>)+/g, function(match) {
+                return '<ol>' + match.replace(/data-number="\d+"/g, '') + '</ol>';
+            })
+            
+            // Convert bullet lists starting with - or *
+            .replace(/<p>[\s]*[-*]\s+(.*?)(?=<br>|<\/p>)/g, '<li>$1</li>')
+            .replace(/(<li>.*<\/li>)(?:<br>)?/g, '$1')
+            .replace(/(<li>(?!.*data-number).*<\/li>)+/g, function(match) {
+                return '<ul>' + match + '</ul>';
+            })
+            
+            // Clean up empty paragraphs and fix list formatting
+            .replace(/<p><\/p>/g, '')
+            .replace(/<p><ul>/g, '<ul>')
+            .replace(/<\/ul><\/p>/g, '</ul>')
+            .replace(/<p><ol>/g, '<ol>')
+            .replace(/<\/ol><\/p>/g, '</ol>')
+            // Remove any stray brackets or formatting artifacts
+            .replace(/\s*\]\s*/g, ' ');
+
+        
+        messageDiv.innerHTML = formattedContent;
+    } else {
+        // User messages remain plain text
+        messageDiv.textContent = content;
+    }
+
     messagesContainer.appendChild(messageDiv);
     messagesContainer.scrollTop = messagesContainer.scrollHeight;
 }

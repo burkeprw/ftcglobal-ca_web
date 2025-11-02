@@ -1,5 +1,7 @@
-# Ignore compiled output
 
+ai/.wrangler/
+.DS_Store
+dist/
 
 # Ignore log files
 *.log
@@ -11,5 +13,7 @@ temp/
 # Ignore sensitive configuration files
 config.ini
 .env
+.dev.vars
 
 # Ignore node_modules directory
+ai/node_modules/
