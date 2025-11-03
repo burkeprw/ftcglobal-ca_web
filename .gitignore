@@ -9,6 +9,7 @@ dist/
 # Ignore temporary files
 temp/
 *~
+.vscode
 
 # Ignore sensitive configuration files
 config.ini

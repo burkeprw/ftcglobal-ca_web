@@ -8,23 +8,25 @@
 	"observability": {
 		"enabled": true
 	},
-	
 	"d1_databases": [
 		{
 			"binding": "DB",
 			"database_name": "webAgnt-db",
 			"database_id": "6ec3b72b-4dc4-4d9a-9bc6-a5863a81a840"
-		}
-	],  
-	
+		},
+		{
+			"binding": "webAgnt_db_prod",
+			"database_name": "webAgnt-db-prod",
+			"database_id": "e3975aa4-a2ba-43e7-84a6-ab70de61ac40"
+		},
+	],
 	"vars": {
 		"EMAIL_FROM": "info@ftcglobal.io",
 		"HOST_EMAIL": "pburke@ftc.global.io",
 		"MAX_ROUNDS": "10",
 		"MAX_TOKENS_PER_MESSAGE": "1000"
-	}, 
-	
-	"placement": { 
-		"mode": "smart" 
+	},
+	"placement": {
+		"mode": "smart"
 	}
 }
