@@ -1,6 +1,7 @@
 {
 	"$schema": "node_modules/wrangler/config-schema.json",
-	"name": "ai",
+	"name": "ftcglobal-ca",
+	"pages_build_output_dir": "public",
 	"compatibility_date": "2025-10-29",
 	"assets": {
 		"directory": "./public"

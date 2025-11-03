@@ -1,11 +1,11 @@
 // functions/api/[[route]].js
 // Catch-all route handler for API endpoints
 
-import { handleChat } from '../../src/handlers/chat.js';
-import { handleIdentify } from '../../src/handlers/identify.js';
-import { handleMemory } from '../../src/handlers/memory.js';
-import { handleEmail } from '../../src/handlers/email.js';
-import { handleServices } from '../../src/handlers/services.js';
+import { handleChat } from '../../../src/handlers/chat.js';
+import { handleIdentify } from '../../../src/handlers/identify.js';
+import { handleMemory } from '../../../src/handlers/memory.js';
+import { handleEmail } from '../../../src/handlers/email.js';
+import { handleServices } from '../../../src/handlers/services.js';
 
 export async function onRequest(context) {
   const { request, env, params } = context;
