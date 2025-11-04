@@ -38,7 +38,18 @@ async function getBrowserFingerprint() {
 
 // Initialize chat when page loads
 document.addEventListener('DOMContentLoaded', async function() {
+        // Ensure landing page is visible and chat is hidden on load
+    const landingPage = document.getElementById('landingPage');
+    const chatContainer = document.getElementById('chatContainer');
+    
+    if (landingPage) landingPage.style.display = 'block';
+    if (chatContainer) {
+        chatContainer.style.display = 'none';
+        chatContainer.classList.remove('active');
+    }
+    
     await identifyVisitor();
+    handleIOSKeyboard();
 });
 
 // iOS keyboard handling

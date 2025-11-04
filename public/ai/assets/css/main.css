@@ -452,7 +452,8 @@ body {
         right: 0;
         bottom: 0;
         width: 100%;
-        height: 100%;
+        height: 100vh;
+        height: -webkit-fill-available;
         max-width: none;
         max-height: none;
         border-radius: 0;
@@ -468,13 +469,14 @@ body {
         overflow-y: auto;
         padding: 1rem;
         padding-bottom: 1rem; /* Reduced padding */
-        min-height: 0; /* Important for iOS flex shrinking */
+        min-height: 100px; /* Important for iOS flex shrinking */
     }
     
     /* Input container - stays at bottom */
     .chat-input-container {
-        position: relative; /* Changed from fixed */
+        position: sticky; /* Changed from fixed */
         bottom: auto;
+        z-index: 100;
         padding: 0.75rem;
         padding-bottom: calc(0.75rem + env(safe-area-inset-bottom, 0));
         background: #3a3a3a;
@@ -490,6 +492,10 @@ body {
         padding: 0.75rem 1rem;
         max-width: 100%;
         box-sizing: border-box;
+    }
+
+    .chat-container:has(.chat-input:focus) {
+        height: 100%;
     }
 }
 
