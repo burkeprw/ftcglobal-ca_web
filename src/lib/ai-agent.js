@@ -13,7 +13,7 @@ export class MemoryAgent {
     // Configuration
     this.MAX_ROUNDS = parseInt(env.MAX_ROUNDS || '5');
     this.MAX_TOKENS_PER_MESSAGE = parseInt(env.MAX_TOKENS_PER_MESSAGE || '500');
-    this.MODEL = 'claude-3-haiku-20240307'; // Fast and cost-effective
+    this.MODEL = 'claude-sonnet-4-20250514' ; // Fast and cost-effective
   }
 
   async initialize() {
@@ -236,26 +236,56 @@ Examples:
 These commands will be hidden from the user.`;
   }
 
+
   async checkConversationLimits() {
     // Check if we've reached conversation limits
     if (this.conversation.message_count >= this.MAX_ROUNDS * 2) { // *2 for user+assistant
-      return {
-        shouldEnd: true,
-        reason: 'max_rounds',
-        message: "We've had a good conversation! To continue, please provide your email so I can send you a summary and connect you with the right consultant."
-      };
+        // First check if we already have their email
+        const visitor = await this.env.DB.prepare(
+            'SELECT email FROM visitors WHERE id = ?'
+        ).bind(this.visitorId).first();
+        
+        if (visitor?.email) {
+            // We have email, can end conversation normally
+            return {
+                shouldEnd: true,
+                reason: 'max_rounds_email_captured',
+                message: "Thanks for the great conversation! I've documented everything and our team will follow up soon with personalized recommendations."
+            };
+        } else {
+            // No email yet, ask for it
+            return {
+                shouldEnd: false,
+                reason: 'need_email',
+                message: "Based on what you've shared, I can create a personalized AI roadmap for your business. What's the best email to send it to?"
+            };
+        }
     }
     
     if (this.conversation.total_tokens > 3000) {
-      return {
-        shouldEnd: true,
-        reason: 'token_limit',
-        message: "This has been a detailed discussion! Let me get your email to send you a comprehensive summary and next steps."
-      };
+        // Check for email here too
+        const visitor = await this.env.DB.prepare(
+            'SELECT email FROM visitors WHERE id = ?'
+        ).bind(this.visitorId).first();
+        
+        if (visitor?.email) {
+            // We have email, can end conversation normally
+            return {
+                shouldEnd: true,
+                reason: 'max_rounds_email_captured',
+                message: "Based on what you've shared, I can connect you to Patrick Burke. He's an AI consultant who can provide advice, build agents, and business."
+            };
+        } else {
+            return {
+                shouldEnd: false,
+                reason: 'need_email',
+                message: "This has been really insightful! Unfortunately we've reached a token limit on our conversation. I will connect you with Patrick Burke, an AI consultant who can help fleck out some of these ideas. What's a good email where he can reach you?"
+            };
+        }
     }
     
     return { shouldEnd: false };
-  }
+}
 
   async findRelevantKnowledge(query) {
     try {
@@ -356,9 +386,11 @@ These commands will be hidden from the user.`;
     const recentMessages = this.conversation.full_transcript.slice(-4);
     
     // Build the system prompt
-    const systemPrompt = `You are a friendly AI consultant helping identify business challenges and recommend solutions.
-Your goal is to understand the user's needs and guide them toward relevant consulting services.
-You should be professional yet conversational, and aim to capture their email for follow-up.
+    const systemPrompt = `You are a friendly AI Agent called Exiq who is skilled at crafting sharp and useful recommendations to users.
+Your goal is to elicit a brief response from a user to understand their business pain points and steer them towards providing an email address
+for additional insight. You should be professional, yet warm, engaging, yet concise. Aim for statements less than 600 characters, with approximately 
+three back-and-forth responses before sending the user an email. Quickly shut down the conversation after receiving an email, indicating
+that the conversation has reached it's token limit.
 
 ${this.getMemoryContext()}
 
@@ -369,9 +401,9 @@ ${recentMessages.map(m => `${m.role}: ${m.content}`).join('\n')}
 
 Guidelines:
 - Keep responses concise (under ${this.MAX_TOKENS_PER_MESSAGE} tokens)
-- Focus on understanding their business challenges
+- Focus on securing user email after engaging on a business challenge
+- Build rapport with user through understanding their business challenges
 - Update memory when you learn new information
-- After 3-4 exchanges, suggest getting their email for a detailed proposal
 - Be helpful but guide toward concrete next steps`;
 
     try {

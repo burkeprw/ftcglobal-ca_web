@@ -2,6 +2,9 @@
 ai/.wrangler/
 .DS_Store
 dist/
+._*
+.DS_Store
+Thumbs.db
 
 # Ignore log files
 *.log
@@ -10,6 +13,7 @@ dist/
 temp/
 *~
 .vscode
+.wrangler
 
 # Ignore sensitive configuration files
 config.ini

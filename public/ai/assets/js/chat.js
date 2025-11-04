@@ -2,7 +2,7 @@
 // Frontend chat interface logic
 
 // Configuration
-const API_URL = window.location.origin;
+const API_URL = window.location.origin + '/ai';
 let visitorId = null;
 let conversationActive = false;
 let messageCount = 0;
@@ -87,6 +87,27 @@ async function identifyVisitor() {
     }
 }
 
+let typingTimeout;
+
+function showTypingIndicator() {
+    const indicator = document.getElementById('typingIndicator');
+    if (indicator) {
+        indicator.textContent = 'Thinking...';
+        indicator.style.display = 'block';
+    }
+    const messagesContainer = document.getElementById('chatMessages');
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+}
+
+function hideTypingIndicator() {
+    // Always wait at least 1.5s before hiding
+    typingTimeout = setTimeout(() => {
+        const indicator = document.getElementById('typingIndicator');
+        if (indicator) indicator.style.display = 'none';
+    }, 1500);
+}
+
+
 // Start chat function (called from index.html)
 function startChat() {
     document.getElementById('landingPage').style.display = 'none';
@@ -99,7 +120,7 @@ function startChat() {
     
     // Send initial greeting
     const greeting = window.returningVisitorMessage || 
-        "Hello! I'm an AI consultant here to help you enhance your business. What challenges are you currently facing?";
+        "Hey, I'm an Agent to help you enhance your business. What challenges are you currently facing?";
     
     addMessage(greeting, 'ai');
     
@@ -239,7 +260,7 @@ function showRecommendations(recommendations) {
 }
 
 // Prompt for email
-function promptForEmail() {
+/*function promptForEmail() {
     const messagesContainer = document.getElementById('chatMessages');
     const emailPrompt = document.createElement('div');
     emailPrompt.className = 'email-prompt';
@@ -252,7 +273,7 @@ function promptForEmail() {
     messagesContainer.scrollTop = messagesContainer.scrollHeight;
     
     document.getElementById('emailCapture').focus();
-}
+}*/
 
 // Submit email
 async function submitEmail() {
