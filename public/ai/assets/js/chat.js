@@ -41,6 +41,48 @@ document.addEventListener('DOMContentLoaded', async function() {
     await identifyVisitor();
 });
 
+// iOS keyboard handling
+function handleIOSKeyboard() {
+    const chatInput = document.getElementById('chatInput');
+    const chatMessages = document.getElementById('chatMessages');
+    const chatContainer = document.getElementById('chatContainer');
+    
+    if (!chatInput || !chatMessages) return;
+    
+    // Check if iOS
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+    
+    if (isIOS) {
+        // Focus handler - scroll to bottom when keyboard appears
+        chatInput.addEventListener('focus', () => {
+            setTimeout(() => {
+                // Scroll messages to bottom
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+                
+                // Ensure input is visible
+                chatInput.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }, 300); // Delay for iOS keyboard animation
+        });
+        
+        // Prevent viewport bouncing
+        document.body.addEventListener('touchmove', (e) => {
+            if (chatContainer.style.display !== 'none') {
+                // Allow scrolling only in messages area
+                if (!chatMessages.contains(e.target)) {
+                    e.preventDefault();
+                }
+            }
+        }, { passive: false });
+    }
+}
+
+// Update the DOMContentLoaded listener
+document.addEventListener('DOMContentLoaded', async function() {
+    await identifyVisitor();
+    handleIOSKeyboard(); // Add this line
+});
+
+
 // Identify visitor - FIXED: removed extra 'a'
 async function identifyVisitor() {
     try {
@@ -88,7 +130,7 @@ async function identifyVisitor() {
 }
 
 let typingTimeout;
-
+/*
 function showTypingIndicator() {
     const indicator = document.getElementById('typingIndicator');
     if (indicator) {
@@ -106,7 +148,7 @@ function hideTypingIndicator() {
         if (indicator) indicator.style.display = 'none';
     }, 1500);
 }
-
+*/
 
 // Start chat function (called from index.html)
 function startChat() {
@@ -318,6 +360,7 @@ function handleKeyPress(event) {
     }
 }
 
+
 // Typing indicator functions
 function showTypingIndicator() {
     const indicator = document.getElementById('typingIndicator');
@@ -330,6 +373,7 @@ function hideTypingIndicator() {
     const indicator = document.getElementById('typingIndicator');
     if (indicator) indicator.style.display = 'none';
 }
+
 
 // Memory panel functions
 async function toggleMemory() {

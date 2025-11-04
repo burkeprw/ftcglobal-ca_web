@@ -193,7 +193,7 @@ body {
 }
 
 .ai-message ul li:before {
-    content: "•";
+    content: "\2022";
     position: absolute;
     left: 0;
     color: #8b7aa8;
@@ -303,7 +303,7 @@ body {
 }
 
 .send-button::before {
-    content: "→";
+    content: "\2192";
     font-weight: bold;
 }
 
@@ -431,43 +431,65 @@ body {
 }
 
 /* ============================================
-   TABLET STYLES (481px - 768px)
+   MOBILE STYLES (to 768px)
    ============================================ */
-@media (min-width: 481px) and (max-width: 768px) {
+
+@media (max-width: 768px) {
+    /* Use flexbox instead of fixed height for iOS keyboard */
     body {
-        font-size: 15px;
+        padding: 0;
+        margin: 0;
+        height: 100vh;
+        overflow: hidden;
+        position: fixed;
+        width: 100%;
     }
-
-    .landing-container h1 {
-        font-size: 2.5rem;
+    
+    .chat-container {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        width: 100%;
+        height: 100%;
+        max-width: none;
+        max-height: none;
+        border-radius: 0;
+        border: none;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
     }
-
-    .landing-container p {
-        font-size: 1.1rem;
-    }
-
+    
+    /* Messages area - flexible height */
     .chat-messages {
-        padding: 1.5rem;
-        gap: 1rem;
+        flex: 1;
+        overflow-y: auto;
+        padding: 1rem;
+        padding-bottom: 1rem; /* Reduced padding */
+        min-height: 0; /* Important for iOS flex shrinking */
     }
-
-    .message {
-        max-width: 85%;
-    }
-
+    
+    /* Input container - stays at bottom */
     .chat-input-container {
-        padding: 1.25rem;
-        padding-bottom: calc(1.25rem + env(safe-area-inset-bottom));
+        position: relative; /* Changed from fixed */
+        bottom: auto;
+        padding: 0.75rem;
+        padding-bottom: calc(0.75rem + env(safe-area-inset-bottom, 0));
+        background: #3a3a3a;
+        border-radius: 0;
+        flex-shrink: 0; /* Prevents shrinking */
+        width: 100%;
+        box-sizing: border-box;
     }
-
+    
+    /* Ensure input doesn't zoom on iOS */
     .chat-input {
-        font-size: 1.05rem;
-        padding: 0.85rem 3.5rem 0.85rem 1.25rem;
-    }
-
-    .send-button {
-        width: 40px;
-        height: 40px;
+        font-size: 16px; /* Prevents zoom */
+        padding: 0.75rem 1rem;
+        max-width: 100%;
+        box-sizing: border-box;
     }
 }
 
