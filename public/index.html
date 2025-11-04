@@ -1,25 +1,74 @@
-<!DOCTYPE HTML>
-
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>FTC Global Ltd.</title>
-  <style>
-    body {
-      background-color: #232323;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      margin: 0;
-    }
-    .logo {
-      max-width: 400px;
-      max-height: 400px;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FTC Global</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+            text-align: center;
+        }
+        
+        .logo {
+            max-width: 300px;
+            height: auto;
+            margin-bottom: 2rem;
+            filter: brightness(0.95);
+        }
+        
+        p {
+            color: rgba(255, 255, 255, 0.85);
+            font-size: 1.6rem;
+            font-weight: 300;
+            letter-spacing: 0.5px;
+        }
+        
+        a {
+            color: #ffffff;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            padding: 0.2rem 0.5rem;
+            border-bottom: 2px solid transparent;
+        }
+        
+        a:hover {
+            color: #9b8ab8;
+            border-bottom-color: #8b7aa8;
+        }
+        
+        /* Mobile optimization */
+        @media (max-width: 768px) {
+            .logo {
+                max-width: 200px;
+            }
+            
+            p {
+                font-size: 1rem;
+                line-height: 1.6;
+            }
+        }
+    </style>
 </head>
 <body>
-  <img src="ftcg.png" alt="FTC Global Logo" class="logo">
+    <img src="ftcg.png" alt="FTC Global Logo" class="logo">
+    <p>
+        <a href="https://ftcglobal.ca/energy/">Energy Consulting</a> | 
+        <a href="https://ftcglobal.ca/climate/">Climate Consulting</a> | 
+        <a href="https://ftcglobal.ca/ai/">AI Consulting</a>
+    </p>
 </body>
 </html>
