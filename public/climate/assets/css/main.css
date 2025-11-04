@@ -217,8 +217,8 @@ input, select, textarea {
 			background-attachment: fixed;
 			background-color: #e1e6e1;
 			background-image: url("../../images/bg.JPG");
-			background-repeat: repeat, repeat-x;
-			background-size: 128px 128px, cover;
+			background-repeat: no-repeat;
+			background-size: cover;
 		}
 
 		body.is-preload *, body.is-preload *:before, body.is-preload *:after {
