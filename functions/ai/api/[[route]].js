@@ -24,6 +24,16 @@ export async function onRequest(context) {
     return new Response(null, { headers: corsHeaders });
   }
 
+  if (path === 'test') {
+    return new Response(JSON.stringify({ 
+      success: true, 
+      path, 
+      env: Object.keys(env) 
+    }), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+    });
+  }
+
   try {
     let response;
     
@@ -73,3 +83,4 @@ export async function onRequest(context) {
     });
   }
 }
+
