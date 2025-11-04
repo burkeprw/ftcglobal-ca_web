@@ -435,11 +435,10 @@ body {
    ============================================ */
 
 @media (max-width: 768px) {
-    /* Use flexbox instead of fixed height for iOS keyboard */
     body {
         padding: 0;
         margin: 0;
-        height: 100vh;
+        height: 100%;
         overflow: hidden;
         position: fixed;
         width: 100%;
@@ -452,51 +451,54 @@ body {
         right: 0;
         bottom: 0;
         width: 100%;
-        height: 100vh;
-        height: -webkit-fill-available;
-        max-width: none;
-        max-height: none;
-        border-radius: 0;
-        border: none;
+        /* Don't use 100vh - let JavaScript set height */
+        height: 100%;
         display: flex;
         flex-direction: column;
         overflow: hidden;
+        z-index: 1000;
     }
     
-    /* Messages area - flexible height */
+    /* Messages must be scrollable and shrinkable */
     .chat-messages {
-        flex: 1;
+        flex: 1 1 auto;
         overflow-y: auto;
+        overflow-x: hidden;
         padding: 1rem;
-        padding-bottom: 1rem; /* Reduced padding */
-        min-height: 100px; /* Important for iOS flex shrinking */
+        min-height: 50px; /* Very small to allow maximum shrinking */
+        -webkit-overflow-scrolling: touch;
     }
     
-    /* Input container - stays at bottom */
+    /* Input MUST stay at bottom and visible */
     .chat-input-container {
-        position: sticky; /* Changed from fixed */
-        bottom: auto;
-        z-index: 100;
+        position: relative;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        z-index: 1001;
         padding: 0.75rem;
         padding-bottom: calc(0.75rem + env(safe-area-inset-bottom, 0));
         background: #3a3a3a;
-        border-radius: 0;
-        flex-shrink: 0; /* Prevents shrinking */
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        flex-shrink: 0;
+        width: 100%;
+        box-sizing: border-box;
+        /* Ensure it's above everything */
+        transform: translate3d(0, 0, 0);
+    }
+    
+    .chat-input {
+        font-size: 16px; /* Prevents zoom */
+        padding: 0.75rem 3.5rem 0.75rem 1rem;
         width: 100%;
         box-sizing: border-box;
     }
     
-    /* Ensure input doesn't zoom on iOS */
-    .chat-input {
-        font-size: 16px; /* Prevents zoom */
-        padding: 0.75rem 1rem;
-        max-width: 100%;
-        box-sizing: border-box;
-    }
-
-    .chat-container:has(.chat-input:focus) {
+    /* Remove the :has selector - not well supported */
+    /* Delete this block: */
+    /* .chat-container:has(.chat-input:focus) {
         height: 100%;
-    }
+    } */
 }
 
 /* ============================================

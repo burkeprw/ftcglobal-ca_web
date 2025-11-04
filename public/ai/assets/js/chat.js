@@ -52,7 +52,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     handleIOSKeyboard();
 });
 
-// iOS keyboard handling
+// iOS keyboard handling - REPLACE lines 55-88 with this:
 function handleIOSKeyboard() {
     const chatInput = document.getElementById('chatInput');
     const chatMessages = document.getElementById('chatMessages');
@@ -64,12 +64,38 @@ function handleIOSKeyboard() {
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
     
     if (isIOS) {
+        // Function to update container height
+        const updateHeight = () => {
+            if (chatContainer.style.display !== 'none') {
+                // Use visualViewport if available (best method)
+                if (window.visualViewport) {
+                    chatContainer.style.height = `${window.visualViewport.height}px`;
+                } else {
+                    // Fallback: use window.innerHeight
+                    chatContainer.style.height = `${window.innerHeight}px`;
+                }
+            }
+        };
+        
+        // Initial height set
+        updateHeight();
+        
+        // Update when keyboard shows/hides
+        if (window.visualViewport) {
+            window.visualViewport.addEventListener('resize', updateHeight);
+            window.visualViewport.addEventListener('scroll', updateHeight);
+        }
+        
+        // Fallback: window resize
+        window.addEventListener('resize', updateHeight);
+        
         // Focus handler - scroll to bottom when keyboard appears
         chatInput.addEventListener('focus', () => {
             setTimeout(() => {
+                // Update height first
+                updateHeight();
                 // Scroll messages to bottom
                 chatMessages.scrollTop = chatMessages.scrollHeight;
-                
                 // Ensure input is visible
                 chatInput.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
             }, 300); // Delay for iOS keyboard animation
@@ -86,13 +112,6 @@ function handleIOSKeyboard() {
         }, { passive: false });
     }
 }
-
-// Update the DOMContentLoaded listener
-document.addEventListener('DOMContentLoaded', async function() {
-    await identifyVisitor();
-    handleIOSKeyboard(); // Add this line
-});
-
 
 // Identify visitor - FIXED: removed extra 'a'
 async function identifyVisitor() {
@@ -162,9 +181,21 @@ function hideTypingIndicator() {
 */
 
 // Start chat function (called from index.html)
+// Start chat function (called from index.html) - REPLACE lines 165-182
 function startChat() {
-    document.getElementById('landingPage').style.display = 'none';
-    document.getElementById('chatContainer').style.display = 'flex';
+    const landingPage = document.getElementById('landingPage');
+    const chatContainer = document.getElementById('chatContainer');
+    
+    if (landingPage) landingPage.style.display = 'none';
+    if (chatContainer) {
+        chatContainer.style.display = 'flex';
+        
+        // Trigger height update for iOS
+        if (window.visualViewport && /iPad|iPhone|iPod/.test(navigator.userAgent)) {
+            chatContainer.style.height = `${window.visualViewport.height}px`;
+        }
+    }
+    
     conversationActive = true;
     
     // Show conversation stats
