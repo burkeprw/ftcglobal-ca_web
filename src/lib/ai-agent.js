@@ -547,7 +547,7 @@ async sendPersonalizedEmail(email, userName) {
         console.log('[EMAIL DEBUG] About to call sendViaMailChannels');
         
         // Send via MailChannels with CC
-        await this.sendViaSES(email, emailBody);
+        await this.sendViaResend(email, emailBody);
         
         console.log('[EMAIL DEBUG] Email sent successfully');
         
@@ -566,48 +566,46 @@ async sendPersonalizedEmail(email, userName) {
     }
 }
 
-async sendViaSES(toEmail, htmlContent) {
-    console.log('[EMAIL DEBUG] Preparing AWS SES for', toEmail);
-    console.log('[EMAIL DEBUG] Config - FROM:', this.env.AWS_SES_FROM_EMAIL, 'REPLY_TO:', this.env.AWS_SES_REPLY_TO);
+async sendViaResend(toEmail, htmlContent) {
+    console.log('[EMAIL DEBUG] Preparing Resend for', toEmail);
+    console.log('[EMAIL DEBUG] Config - FROM:', this.env.AWS_SES_FROM_EMAIL);
     
     try {
-        // Create transporter using AWS SES SMTP
-        const transporter = nodemailer.createTransport({
-            host: this.env.AWS_SES_SMTP_HOST,
-            port: 587,
-            secure: false, // Use TLS, not SSL
-            auth: {
-                user: this.env.AWS_SES_SMTP_USER,
-                pass: this.env.AWS_SES_SMTP_PASS
-            }
+        const response = await fetch('https://api.resend.com/emails', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${this.env.RESEND_API_KEY}`,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                from: `eXIQ <${this.env.AWS_SES_FROM_EMAIL}>`,
+                to: [toEmail],
+                cc: [this.env.AWS_SES_REPLY_TO],
+                reply_to: this.env.AWS_SES_REPLY_TO,
+                subject: 'AI Consulting Follow-up: Patrick Burke Virtual Introduction',
+                html: htmlContent
+            })
         });
         
-        // Prepare email options
-        const mailOptions = {
-            from: `eXIQ <${this.env.AWS_SES_FROM_EMAIL}>`,
-            to: toEmail,
-            cc: this.env.AWS_SES_REPLY_TO,
-            replyTo: this.env.AWS_SES_REPLY_TO,
-            subject: 'AI Consulting Follow-up: Patrick Burke Virtual Introduction',
-            html: htmlContent
-        };
+        console.log('[EMAIL DEBUG] Resend HTTP Status:', response.status);
         
-        console.log('[EMAIL DEBUG] Sending via AWS SES');
+        const responseData = await response.json();
         
-        // Send email
-        const result = await transporter.sendMail(mailOptions);
+        if (!response.ok) {
+            console.error('[EMAIL DEBUG] Resend FAILURE:', responseData);
+            throw new Error(`Email failed: ${response.status} - ${JSON.stringify(responseData)}`);
+        }
         
-        console.log('[EMAIL DEBUG] AWS SES SUCCESS - Message ID:', result.messageId);
-        console.log('[EMAIL DEBUG] Response:', result.response);
-        
-        return result;
+        console.log('[EMAIL DEBUG] Resend SUCCESS - Email ID:', responseData.id);
+        return responseData;
         
     } catch (error) {
-        console.error('[EMAIL DEBUG] AWS SES FAILURE:', error.message);
+        console.error('[EMAIL DEBUG] Resend FAILURE:', error.message);
         console.error('[EMAIL DEBUG] Full error:', error);
         throw new Error(`Email failed: ${error.message}`);
     }
 }
+
 
 extractSpecificDetail(messages) {
     // Extract a specific detail from user messages
