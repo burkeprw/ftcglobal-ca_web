@@ -375,8 +375,14 @@ export class MemoryAgent {
         this.memory.core_memory.email = email;
         await this.saveMemory();
         
-        // Send email (if you have the sendPersonalizedEmail method)
-        // await this.sendPersonalizedEmail(email, userName);
+        // Send email
+        try {
+             await this.sendPersonalizedEmail(email, userName);
+        } catch (error) {
+             console.error("Failed to send email despite valid capture:", error);
+             // Optional: decide if you want to tell the user it failed, 
+             // or just log it internally and still show success message to user.
+        }
         
         // Return confirmation
         return {
