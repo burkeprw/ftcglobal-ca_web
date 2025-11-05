@@ -19,6 +19,8 @@ temp/
 config.ini
 .env
 .dev.vars
+*.key
+dkim-private.key
 
 # Ignore node_modules directory
 ai/node_modules/

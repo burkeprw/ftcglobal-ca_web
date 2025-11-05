@@ -5,7 +5,7 @@
 	"scripts": {
 		"deploy": "wrangler pages deploy",
 		"dev": "wrangler pages dev public --local",
-	    "dev:ai": "wrangler pages dev public/ai --local",
+		"dev:ai": "wrangler pages dev public/ai --local",
 		"start": "wrangler pages dev",
 		"db:init": "wrangler d1 execute webAgnt-db --local --file=./schema/database.sql",
 		"db:init:remote": "wrangler d1 execute webAgnt-db --remote --file=./schema/database.sql",
@@ -16,6 +16,7 @@
 		"wrangler": "^4.45.3"
 	},
 	"dependencies": {
-		"@anthropic-ai/sdk": "^0.24.0"
+		"@anthropic-ai/sdk": "^0.24.0",
+		"nodemailer": "^7.0.10"
 	}
 }

@@ -2,6 +2,7 @@
 // MemGPT-style agent with self-editing memory
 
 import Anthropic from '@anthropic-ai/sdk';
+import nodemailer from 'nodemailer';
 
 export class MemoryAgent {
   constructor(env, visitorId) {
@@ -504,80 +505,107 @@ try {
   }
 
  
-  async sendPersonalizedEmail(email, userName) {
-    console.log(`[EMAIL DEBUG] Starting sendPersonalizedEmail to: ${email}`);
+async sendPersonalizedEmail(email, userName) {
     try {
+        console.log('[EMAIL DEBUG] Starting sendPersonalizedEmail to:', email);
+        
+        // Get conversation details
         const conversation = await this.env.DB.prepare(`
             SELECT full_transcript, identified_challenges 
             FROM conversations WHERE id = ?
         `).bind(this.conversation.id).first();
         
         console.log('[EMAIL DEBUG] Conversation data retrieved from DB');
-
-        // ... (keep your existing email body generation code here) ...
-        // For brevity, I'm just showing the logging parts. 
-        // Ensure you keep your full HTML body definition!
-        const emailBody = `<p>Hi ${userName || 'there'},</p>...`; 
-
-        console.log('[EMAIL DEBUG] About to call sendViaMailChannels');
-        await this.sendViaMailChannels(email, emailBody);
-        console.log('[EMAIL DEBUG] returned from sendViaMailChannels successfully');
         
+        const challenges = JSON.parse(conversation.identified_challenges || '[]');
+        const transcript = JSON.parse(conversation.full_transcript || '[]');
+        
+        // Extract specific details from conversation
+        const userMessages = transcript.filter(m => m.role === 'user').map(m => m.content);
+        const mainChallenge = challenges[0] || 'business optimization';
+        const specificDetail = this.extractSpecificDetail(userMessages);
+        
+        // Generate email body
+        const emailBody = `
+            <p>Hi ${userName || 'there'},</p>
+            
+            <p>This is eXIQ, the Agent you were chatting with. To summarize our conversation, 
+            you indicated ${mainChallenge}, specifically mentioning ${specificDetail}. 
+            While I am not optimized to provide further advice, Patrick Burke (cc'd here) 
+            can work with you to develop novel AI solutions customized to your specific business needs.</p>
+            
+            <p>If you would like to speak with Patrick, please respond to this email with 
+            a few times that may work for your schedule. He will be in touch with more detail.</p>
+            
+            <p>Wishing you continued growth and prosperity in your business endeavours.</p>
+            
+            <p>Diligently yours,<br>
+            eXIQ ≋<br>
+            <a href="https://ftcglobal.ca/ai/">AI Consulting</a></p>
+        `;
+        
+        console.log('[EMAIL DEBUG] About to call sendViaMailChannels');
+        
+        // Send via MailChannels with CC
+        await this.sendViaSES(email, emailBody);
+        
+        console.log('[EMAIL DEBUG] Email sent successfully');
+        
+        // Log to database
         await this.env.DB.prepare(`
             UPDATE conversations 
             SET email_sent = TRUE, email_sent_at = CURRENT_TIMESTAMP 
             WHERE id = ?
         `).bind(this.conversation.id).run();
+        
         console.log('[EMAIL DEBUG] Database updated with email_sent = TRUE');
         
     } catch (error) {
         console.error('[EMAIL DEBUG] CRITICAL ERROR in sendPersonalizedEmail:', error);
-        throw error; // Re-throw so the main chat function sees it too
+        throw error; // Re-throw so caller knows it failed
     }
 }
 
-async sendViaMailChannels(toEmail, htmlContent) {
-    console.log(`[EMAIL DEBUG] Preparing MailChannels fetch for ${toEmail}`);
+async sendViaSES(toEmail, htmlContent) {
+    console.log('[EMAIL DEBUG] Preparing AWS SES for', toEmail);
+    console.log('[EMAIL DEBUG] Config - FROM:', this.env.AWS_SES_FROM_EMAIL, 'REPLY_TO:', this.env.AWS_SES_REPLY_TO);
     
-    // Log the sensitive environment variables to ensure they exist (redact partially for security if sharing logs)
-    console.log(`[EMAIL DEBUG] Config - FROM: ${this.env.EMAIL_FROM}, HOST: ${this.env.HOST_EMAIL}`);
-
-    const response = await fetch('https://api.mailchannels.net/tx/v1/send', {
-        method: 'POST',
-        headers: {
-            'content-type': 'application/json',
-        },
-        body: JSON.stringify({
-            personalizations: [{
-                to: [{ email: toEmail }],
-                cc: [{ email: this.env.HOST_EMAIL }]
-            }],
-            from: {
-                email: this.env.EMAIL_FROM,
-                name: 'eXIQ - AI Consulting Agent'
-            },
-            reply_to: {
-                email: this.env.HOST_EMAIL,
-                name: 'Patrick Burke'
-            },
+    try {
+        // Create transporter using AWS SES SMTP
+        const transporter = nodemailer.createTransport({
+            host: this.env.AWS_SES_SMTP_HOST,
+            port: 587,
+            secure: false, // Use TLS, not SSL
+            auth: {
+                user: this.env.AWS_SES_SMTP_USER,
+                pass: this.env.AWS_SES_SMTP_PASS
+            }
+        });
+        
+        // Prepare email options
+        const mailOptions = {
+            from: `eXIQ <${this.env.AWS_SES_FROM_EMAIL}>`,
+            to: toEmail,
+            cc: this.env.AWS_SES_REPLY_TO,
+            replyTo: this.env.AWS_SES_REPLY_TO,
             subject: 'AI Consulting Follow-up: Patrick Burke Virtual Introduction',
-            content: [{
-                type: 'text/html',
-                value: htmlContent
-            }]
-        })
-    });
-    
-    console.log(`[EMAIL DEBUG] MailChannels HTTP Status: ${response.status} ${response.statusText}`);
-
-    if (!response.ok) {
-        const errorText = await response.text();
-        console.error('[EMAIL DEBUG] MailChannels FAILURE BODY:', errorText);
-        throw new Error(`Email failed: ${response.status} - ${errorText}`);
-    } else {
-        // Even on success, sometimes there's useful info in the body
-        const successText = await response.text();
-        console.log('[EMAIL DEBUG] MailChannels SUCCESS BODY:', successText);
+            html: htmlContent
+        };
+        
+        console.log('[EMAIL DEBUG] Sending via AWS SES');
+        
+        // Send email
+        const result = await transporter.sendMail(mailOptions);
+        
+        console.log('[EMAIL DEBUG] AWS SES SUCCESS - Message ID:', result.messageId);
+        console.log('[EMAIL DEBUG] Response:', result.response);
+        
+        return result;
+        
+    } catch (error) {
+        console.error('[EMAIL DEBUG] AWS SES FAILURE:', error.message);
+        console.error('[EMAIL DEBUG] Full error:', error);
+        throw new Error(`Email failed: ${error.message}`);
     }
 }
 
