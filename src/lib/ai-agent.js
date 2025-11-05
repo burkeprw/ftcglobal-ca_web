@@ -567,7 +567,7 @@ async sendPersonalizedEmail(email, userName) {
 
 async sendViaResend(toEmail, htmlContent) {
     console.log('[EMAIL DEBUG] Preparing Resend for', toEmail);
-    console.log('[EMAIL DEBUG] Config - FROM:', this.env.AWS_SES_FROM_EMAIL);
+    console.log('[EMAIL DEBUG] Config - FROM:', this.env.EMAIL_FROM);
     
     try {
         const response = await fetch('https://api.resend.com/emails', {
@@ -577,10 +577,10 @@ async sendViaResend(toEmail, htmlContent) {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                from: `eXIQ <${this.env.AWS_SES_FROM_EMAIL}>`,
+                from: `eXIQ <${this.env.EMAIL_FROM}>`,
                 to: [toEmail],
-                cc: [this.env.AWS_SES_REPLY_TO],
-                reply_to: this.env.AWS_SES_REPLY_TO,
+                cc: [this.env.EMAIL_REPLY_TO],
+                reply_to: this.env.EMAIL_REPLY_TO,
                 subject: 'AI Consulting Follow-up: Patrick Burke Virtual Introduction',
                 html: htmlContent
             })
