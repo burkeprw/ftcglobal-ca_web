@@ -356,6 +356,36 @@ export class MemoryAgent {
   async chat(userMessage) {
     await this.initialize();
     
+    // Check for email in message
+    const emailRegex = /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/;
+    const emailMatch = userMessage.match(emailRegex);  // Make sure this line exists
+    
+    if (emailMatch) {  // This checks if an email was found
+        const email = emailMatch[0];
+        const userName = this.memory.core_memory.user_name || 'there';
+        
+        // Save email to visitor
+        await this.env.DB.prepare(`
+            UPDATE visitors 
+            SET email = ?, updated_at = CURRENT_TIMESTAMP
+            WHERE id = ?
+        `).bind(email, this.visitorId).run();
+        
+        // Update memory
+        this.memory.core_memory.email = email;
+        await this.saveMemory();
+        
+        // Send email (if you have the sendPersonalizedEmail method)
+        // await this.sendPersonalizedEmail(email, userName);
+        
+        // Return confirmation
+        return {
+            response: `Perfect! I've captured your email (${email}) and saved it to our system. Our team will follow up within 24 hours with personalized recommendations.`,
+            messageCount: this.conversation.message_count,
+            emailCaptured: true
+        };
+    }
+
     console.log('=== DEBUG API KEY ===');
     console.log('API Key exists:', !!this.env.CLAUDE_API_KEY);
     console.log('API Key starts with:', this.env.CLAUDE_API_KEY?.substring(0, 15) + '...');
@@ -434,6 +464,7 @@ export class MemoryAgent {
           this.conversation.identified_challenges.push(challengeEdit.value);
         }
       }
+    
       
       // Save messages
       await this.saveMessage('user', userMessage, userMessage.length / 4); // Rough token estimate
@@ -441,28 +472,6 @@ export class MemoryAgent {
       
       // Save updated memory
       await this.saveMemory();
-      
-      if (emailMatch) {
-          const email = emailMatch[0];
-          const userName = this.memory.core_memory.user_name || 'there';
-          
-          // Save email to visitor
-          await this.env.DB.prepare(`
-              UPDATE visitors 
-              SET email = ?, name = ?, updated_at = CURRENT_TIMESTAMP
-              WHERE id = ?
-          `).bind(email, userName, this.visitorId).run();
-          
-          // Send personalized email
-          await this.sendPersonalizedEmail(email, userName);
-          
-          // Return confirmation
-          return {
-              response: `Perfect! I've sent an introduction email to ${email} with a summary of our conversation. Patrick Burke has been CC'd and will follow up with you shortly. Is there anything else you'd like to discuss?`,
-              messageCount: this.conversation.message_count,
-              emailCaptured: true
-          };
-      }
       
       // Check if we should recommend services
       let recommendations = [];
@@ -478,12 +487,14 @@ export class MemoryAgent {
         recommendations: recommendations,
         shouldEndConversation: false
       };
-      
-    } catch (error) {
+    }
+
+    catch (error) {
       console.error('Claude API Error:', error);
       throw new Error(`AI processing error: ${error.message}`);
     }
   }
+
  
   async sendPersonalizedEmail(email, userName) {
     try {
@@ -577,6 +588,4 @@ extractSpecificDetail(messages) {
     }
     return 'your specific requirements';
 }
-
-
 }
