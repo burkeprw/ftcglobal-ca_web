@@ -18,8 +18,8 @@
 
 	],
 	"vars": {
-		//"EMAIL_FROM": "eXIQ@ftcglobal.ca", // Secret: exiq@ftcglobal.ca
-		//"HOST_EMAIL": "info@ftcglobal.ca",
+		"EMAIL_FROM": "eXIQ@ftcglobal.ca", 
+		"HOST_EMAIL": "info@ftcglobal.ca",
 		"MAX_ROUNDS": "5",
 		"MAX_TOKENS_PER_MESSAGE": "500"
 	},
