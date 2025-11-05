@@ -208,34 +208,32 @@ export class MemoryAgent {
         this.memory.identified_challenges = [];
     }
     
-    
     return `
-=== CURRENT MEMORY STATE ===
-Core Memory:
-- User Name: ${this.memory.core_memory.user_name}
-- Email: ${this.memory.core_memory.email || 'Not provided'}
-- Company: ${this.memory.core_memory.company || 'Not provided'}
-- Role: ${this.memory.core_memory.role || 'Not provided'}
-- Relationship: ${this.memory.core_memory.relationship}
-- Important Facts: ${this.memory.core_memory.important_facts.join(', ') || 'None yet'}
+      === CURRENT MEMORY STATE ===
+      Core Memory:
+      - User Name: ${this.memory.core_memory.user_name}
+      - Email: ${this.memory.core_memory.email || 'Not provided'}
+      - Company: ${this.memory.core_memory.company || 'Not provided'}
+      - Role: ${this.memory.core_memory.role || 'Not provided'}
+      - Relationship: ${this.memory.core_memory.relationship}
+      - Important Facts: ${this.memory.core_memory.important_facts.join(', ') || 'None yet'}
 
-Conversation Summary: ${this.memory.conversation_summary || 'First conversation'}
-Recent Topics: ${this.memory.recent_topics.slice(-5).join(', ') || 'None'}
-Identified Challenges: ${this.memory.identified_challenges.join(', ') || 'None identified'}
-Interaction Count: ${this.memory.interaction_count}
-Message Count in Current Conversation: ${this.conversation.message_count}
+      Conversation Summary: ${this.memory.conversation_summary || 'First conversation'}
+      Recent Topics: ${this.memory.recent_topics.slice(-5).join(', ') || 'None'}
+      Identified Challenges: ${this.memory.identified_challenges.join(', ') || 'None identified'}
+      Interaction Count: ${this.memory.interaction_count}
+      Message Count in Current Conversation: ${this.conversation.message_count}
 
-=== MEMORY INSTRUCTIONS ===
-You can update memory by including [MEMORY_UPDATE: key=value] commands in your response.
-Examples:
-- [MEMORY_UPDATE: core_memory.user_name=John]
-- [MEMORY_UPDATE: core_memory.company=TechCorp]
-- [MEMORY_UPDATE: core_memory.important_facts=[Needs AI for customer service]]
-- [MEMORY_UPDATE: identified_challenges=[Scaling customer support]]
+      === MEMORY INSTRUCTIONS ===
+      You can update memory by including [MEMORY_UPDATE: key=value] commands in your response.
+      Examples:
+      - [MEMORY_UPDATE: core_memory.user_name=John]
+      - [MEMORY_UPDATE: core_memory.company=TechCorp]
+      - [MEMORY_UPDATE: core_memory.important_facts=[Needs AI for customer service]]
+      - [MEMORY_UPDATE: identified_challenges=[Scaling customer support]]
 
-These commands will be hidden from the user.`;
+      These commands will be hidden from the user.`;
   }
-
 
   async checkConversationLimits() {
     // Check if we've reached conversation limits
@@ -386,25 +384,25 @@ These commands will be hidden from the user.`;
     const recentMessages = this.conversation.full_transcript.slice(-4);
     
     // Build the system prompt
-    const systemPrompt = `You are a friendly AI Agent called Exiq who is skilled at crafting sharp and useful recommendations to users.
-Your goal is to elicit a brief response from a user to understand their business pain points and steer them towards providing an email address
-for additional insight. You should be professional, yet warm, engaging, yet concise. Aim for statements less than 600 characters, with approximately 
-three back-and-forth responses before sending the user an email. Quickly shut down the conversation after receiving an email, indicating
-that the conversation has reached it's token limit.
+    const systemPrompt = `You are a friendly AI Agent called eXIQ who is skilled at crafting sharp and useful recommendations to users.
+      Your goal is to elicit a brief response from a user to understand their business pain points and steer them towards providing an email address
+      for additional insight. You should be professional, yet warm, engaging, yet concise. Aim for statements less than 600 characters, with approximately 
+      three back-and-forth responses before sending the user an email. Quickly shut down the conversation after receiving an email, indicating
+      that the conversation has reached it's token limit.
 
-${this.getMemoryContext()}
+    ${this.getMemoryContext()}
 
-${relevantKnowledge}
+    ${relevantKnowledge}
 
-Recent Conversation:
-${recentMessages.map(m => `${m.role}: ${m.content}`).join('\n')}
+    Recent Conversation:
+    ${recentMessages.map(m => `${m.role}: ${m.content}`).join('\n')}
 
-Guidelines:
-- Keep responses concise (under ${this.MAX_TOKENS_PER_MESSAGE} tokens)
-- Focus on securing user email after engaging on a business challenge
-- Build rapport with user through understanding their business challenges
-- Update memory when you learn new information
-- Be helpful but guide toward concrete next steps`;
+    Guidelines:
+    - Keep responses concise (under ${this.MAX_TOKENS_PER_MESSAGE} tokens)
+    - Focus on securing user email after engaging on a business challenge
+    - Build rapport with user through understanding their business challenges
+    - Update memory when you learn new information
+    - Be helpful but guide toward concrete next steps`;
 
     try {
       // Initialize Anthropic client
@@ -444,6 +442,28 @@ Guidelines:
       // Save updated memory
       await this.saveMemory();
       
+      if (emailMatch) {
+          const email = emailMatch[0];
+          const userName = this.memory.core_memory.user_name || 'there';
+          
+          // Save email to visitor
+          await this.env.DB.prepare(`
+              UPDATE visitors 
+              SET email = ?, name = ?, updated_at = CURRENT_TIMESTAMP
+              WHERE id = ?
+          `).bind(email, userName, this.visitorId).run();
+          
+          // Send personalized email
+          await this.sendPersonalizedEmail(email, userName);
+          
+          // Return confirmation
+          return {
+              response: `Perfect! I've sent an introduction email to ${email} with a summary of our conversation. Patrick Burke has been CC'd and will follow up with you shortly. Is there anything else you'd like to discuss?`,
+              messageCount: this.conversation.message_count,
+              emailCaptured: true
+          };
+      }
+      
       // Check if we should recommend services
       let recommendations = [];
       if (this.conversation.identified_challenges.length > 0) {
@@ -464,4 +484,99 @@ Guidelines:
       throw new Error(`AI processing error: ${error.message}`);
     }
   }
+ 
+  async sendPersonalizedEmail(email, userName) {
+    try {
+        // Get conversation details
+        const conversation = await this.env.DB.prepare(`
+            SELECT full_transcript, identified_challenges 
+            FROM conversations WHERE id = ?
+        `).bind(this.conversation.id).first();
+        
+        const challenges = JSON.parse(conversation.identified_challenges || '[]');
+        const transcript = JSON.parse(conversation.full_transcript || '[]');
+        
+        // Extract specific details from conversation
+        const userMessages = transcript.filter(m => m.role === 'user').map(m => m.content);
+        const mainChallenge = challenges[0] || 'business optimization';
+        const specificDetail = this.extractSpecificDetail(userMessages);
+        
+        // Generate email body
+        const emailBody = `
+            <p>Hi ${userName || 'there'},</p>
+            
+            <p>This is eXIQ, the Agent you were chatting with. To summarize our conversation, 
+            you indicated ${mainChallenge}, specifically mentioning ${specificDetail}. 
+            While I am not optimized to provide further advice, Patrick Burke (cc'd here) 
+            can work with you to develop novel AI solutions customized to your specific business needs.</p>
+            
+            <p>If you would like to speak with Patrick, please respond to this email with 
+            a few times that may work for your schedule. He will be in touch with more detail.</p>
+            
+            <p>Wishing you continued growth and prosperity in your business endeavours.</p>
+            
+            <p>Diligently yours,<br>
+            eXIQ ≋<br>
+            <a href="https://ftcglobal.ca/ai/">AI Consulting</a></p>
+        `;
+        
+        // Send via MailChannels with CC
+        await this.sendViaMailChannels(email, emailBody);
+        
+        // Log to database
+        await this.env.DB.prepare(`
+            UPDATE conversations 
+            SET email_sent = TRUE, email_sent_at = CURRENT_TIMESTAMP 
+            WHERE id = ?
+        `).bind(this.conversation.id).run();
+        
+    } catch (error) {
+        console.error('Email sending error:', error);
+    }
+}
+
+async sendViaMailChannels(toEmail, htmlContent) {
+    const response = await fetch('https://api.mailchannels.net/tx/v1/send', {
+        method: 'POST',
+        headers: {
+            'content-type': 'application/json',
+        },
+        body: JSON.stringify({
+            personalizations: [{
+                to: [{ email: toEmail }],
+                cc: [{ email: this.env.HOST_EMAIL }]  // CC to host
+            }],
+            from: {
+                email: this.env.EMAIL_FROM,
+                name: 'eXIQ - AI Consulting Agent'
+            },
+            reply_to: {
+                email: this.env.HOST_EMAIL,
+                name: 'Patrick Burke'
+            },
+            subject: 'AI Consulting Follow-up: Patrick Burke Virtual Introduction',
+            content: [{
+                type: 'text/html',
+                value: htmlContent
+            }]
+        })
+    });
+    
+    if (!response.ok) {
+        throw new Error(`Email failed: ${response.status}`);
+    }
+}
+
+extractSpecificDetail(messages) {
+    // Extract a specific detail from user messages
+    // Simple implementation - enhance as needed
+    if (messages.length > 0) {
+        const lastMessage = messages[messages.length - 1];
+        const words = lastMessage.split(' ').slice(0, 10).join(' ');
+        return words.length > 20 ? words + '...' : words;
+    }
+    return 'your specific requirements';
+}
+
+
 }
