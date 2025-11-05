@@ -15,7 +15,6 @@
 			"database_name": "webAgnt-db",
 			"database_id": "6ec3b72b-4dc4-4d9a-9bc6-a5863a81a840"
 		},
-
 	],
 	"vars": {
 		"EMAIL_FROM": "eXIQ@ftcglobal.ca", 
