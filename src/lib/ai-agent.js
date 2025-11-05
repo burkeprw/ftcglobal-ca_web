@@ -505,56 +505,43 @@ try {
 
  
   async sendPersonalizedEmail(email, userName) {
+    console.log(`[EMAIL DEBUG] Starting sendPersonalizedEmail to: ${email}`);
     try {
-        // Get conversation details
         const conversation = await this.env.DB.prepare(`
             SELECT full_transcript, identified_challenges 
             FROM conversations WHERE id = ?
         `).bind(this.conversation.id).first();
         
-        const challenges = JSON.parse(conversation.identified_challenges || '[]');
-        const transcript = JSON.parse(conversation.full_transcript || '[]');
-        
-        // Extract specific details from conversation
-        const userMessages = transcript.filter(m => m.role === 'user').map(m => m.content);
-        const mainChallenge = challenges[0] || 'business optimization';
-        const specificDetail = this.extractSpecificDetail(userMessages);
-        
-        // Generate email body
-        const emailBody = `
-            <p>Hi ${userName || 'there'},</p>
-            
-            <p>This is eXIQ, the Agent you were chatting with. To summarize our conversation, 
-            you indicated ${mainChallenge}, specifically mentioning ${specificDetail}. 
-            While I am not optimized to provide further advice, Patrick Burke (cc'd here) 
-            can work with you to develop novel AI solutions customized to your specific business needs.</p>
-            
-            <p>If you would like to speak with Patrick, please respond to this email with 
-            a few times that may work for your schedule. He will be in touch with more detail.</p>
-            
-            <p>Wishing you continued growth and prosperity in your business endeavours.</p>
-            
-            <p>Diligently yours,<br>
-            eXIQ ≋<br>
-            <a href="https://ftcglobal.ca/ai/">AI Consulting</a></p>
-        `;
-        
-        // Send via MailChannels with CC
+        console.log('[EMAIL DEBUG] Conversation data retrieved from DB');
+
+        // ... (keep your existing email body generation code here) ...
+        // For brevity, I'm just showing the logging parts. 
+        // Ensure you keep your full HTML body definition!
+        const emailBody = `<p>Hi ${userName || 'there'},</p>...`; 
+
+        console.log('[EMAIL DEBUG] About to call sendViaMailChannels');
         await this.sendViaMailChannels(email, emailBody);
+        console.log('[EMAIL DEBUG] returned from sendViaMailChannels successfully');
         
-        // Log to database
         await this.env.DB.prepare(`
             UPDATE conversations 
             SET email_sent = TRUE, email_sent_at = CURRENT_TIMESTAMP 
             WHERE id = ?
         `).bind(this.conversation.id).run();
+        console.log('[EMAIL DEBUG] Database updated with email_sent = TRUE');
         
     } catch (error) {
-        console.error('Email sending error:', error);
+        console.error('[EMAIL DEBUG] CRITICAL ERROR in sendPersonalizedEmail:', error);
+        throw error; // Re-throw so the main chat function sees it too
     }
 }
 
 async sendViaMailChannels(toEmail, htmlContent) {
+    console.log(`[EMAIL DEBUG] Preparing MailChannels fetch for ${toEmail}`);
+    
+    // Log the sensitive environment variables to ensure they exist (redact partially for security if sharing logs)
+    console.log(`[EMAIL DEBUG] Config - FROM: ${this.env.EMAIL_FROM}, HOST: ${this.env.HOST_EMAIL}`);
+
     const response = await fetch('https://api.mailchannels.net/tx/v1/send', {
         method: 'POST',
         headers: {
@@ -563,7 +550,7 @@ async sendViaMailChannels(toEmail, htmlContent) {
         body: JSON.stringify({
             personalizations: [{
                 to: [{ email: toEmail }],
-                cc: [{ email: this.env.HOST_EMAIL }]  // CC to host
+                cc: [{ email: this.env.HOST_EMAIL }]
             }],
             from: {
                 email: this.env.EMAIL_FROM,
@@ -581,10 +568,16 @@ async sendViaMailChannels(toEmail, htmlContent) {
         })
     });
     
-    if (!response.ok) {// ADD THIS: Get the text body of the error
+    console.log(`[EMAIL DEBUG] MailChannels HTTP Status: ${response.status} ${response.statusText}`);
+
+    if (!response.ok) {
         const errorText = await response.text();
-        console.error('MailChannels Error Body:', errorText); // <--- THIS WILL PRINT THE SECRET CFID
+        console.error('[EMAIL DEBUG] MailChannels FAILURE BODY:', errorText);
         throw new Error(`Email failed: ${response.status} - ${errorText}`);
+    } else {
+        // Even on success, sometimes there's useful info in the body
+        const successText = await response.text();
+        console.log('[EMAIL DEBUG] MailChannels SUCCESS BODY:', successText);
     }
 }
 
