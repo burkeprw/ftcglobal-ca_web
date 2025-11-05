@@ -330,11 +330,13 @@ export class MemoryAgent {
   }
 
   async recommendServices(challenges) {
-    try {
-      // Sanitize challenges text
-      const searchTerm = challenges.replace(/['"]/g, '').substring(0, 100);
-      
-      // Find matching services based on challenges
+try {
+      const cleanChallenges = challenges.replace(/[^\w\s]/gi, ' ').trim();
+      const words = cleanChallenges.split(/\s+/);
+      const searchTerm = words.slice(-3).join(' ').substring(0, 30);
+
+      if (searchTerm.length < 3) return []; // Too short to search useful
+
       const services = await this.env.DB.prepare(`
         SELECT name, description, keywords
         FROM services
@@ -349,7 +351,7 @@ export class MemoryAgent {
       return services.results || [];
     } catch (error) {
       console.error('Service recommendation error:', error);
-      return [];
+      return []; // Return empty array on error so chat doesn't crash
     }
   }
 
@@ -579,8 +581,10 @@ async sendViaMailChannels(toEmail, htmlContent) {
         })
     });
     
-    if (!response.ok) {
-        throw new Error(`Email failed: ${response.status}`);
+    if (!response.ok) {// ADD THIS: Get the text body of the error
+        const errorText = await response.text();
+        console.error('MailChannels Error Body:', errorText); // <--- THIS WILL PRINT THE SECRET CFID
+        throw new Error(`Email failed: ${response.status} - ${errorText}`);
     }
 }
 

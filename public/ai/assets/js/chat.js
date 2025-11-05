@@ -263,7 +263,6 @@ async function sendMessage() {
             // Check if conversation should end
             if (data.shouldEndConversation) {
                 setTimeout(() => {
-                    promptForEmail();
                 }, 2000);
             }
         }
