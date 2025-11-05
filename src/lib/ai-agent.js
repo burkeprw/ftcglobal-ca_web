@@ -2,7 +2,6 @@
 // MemGPT-style agent with self-editing memory
 
 import Anthropic from '@anthropic-ai/sdk';
-import nodemailer from 'nodemailer';
 
 export class MemoryAgent {
   constructor(env, visitorId) {
