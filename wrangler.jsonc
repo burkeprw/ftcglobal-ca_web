@@ -3,9 +3,9 @@
 	"name": "ftcglobal-ca",
 	"pages_build_output_dir": "public",
 	"compatibility_date": "2025-10-29",
-	"assets": {
+	/*"assets": {
 		"directory": "./public"
-	},
+	},*/
 	"observability": {
 		"enabled": true
 	},
