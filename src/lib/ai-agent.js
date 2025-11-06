@@ -517,7 +517,7 @@ async sendPersonalizedEmail(email, userName) {
         
         // Extract specific details from conversation
         const userMessages = transcript.filter(m => m.role === 'user').map(m => m.content);
-        const mainChallenge = challenges[0] || 'business optimization';
+        let mainChallenge = challenges[0] || 'business optimization';
         mainChallenge = mainChallenge.replace(/^['"[\[]+|['"\]]+$/g, '').trim();
         
         // Generate email body with improved tone
@@ -617,4 +617,5 @@ _getSafeUserName(userName) {
     
     // 3. Final fallback
     return 'there';
+}
 }
