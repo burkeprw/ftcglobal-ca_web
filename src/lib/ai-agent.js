@@ -572,7 +572,7 @@ async sendViaResend(toEmail, htmlContent) {
         throw new Error(`Email failed: ${error.message}`);
     }
 }
-
+}
 
 extractSpecificDetail(userMessages) {
   if (!userMessages || userMessages.length === 0) return "I'm ready to help.";
