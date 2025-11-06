@@ -15,7 +15,6 @@ html {
     scroll-behavior: smooth;
     /* iOS safe area variables */
     height: 100%;
-    height: -webkit-fill-available;
 }
 
 body {
@@ -97,7 +96,6 @@ body {
     flex-direction: column;
     border: none;
     border-radius: 0;
-    position: fixed;
     top: 0;
     left: 0;
     animation: slideUpMobile 0.3s ease-out;
@@ -374,8 +372,7 @@ body {
 /* ============================================
    LOADING STATES
    ============================================ */
-.chat-input:disabled,
-.send-button:disabled {
+.chat-input:disabled {
     opacity: 0.5;
     cursor: not-allowed;
 }
@@ -431,75 +428,6 @@ body {
     .chat-container {
         height: -webkit-fill-available;
     }
-}
-
-/* ============================================
-   MOBILE STYLES (to 768px)
-   ============================================ */
-
-@media (max-width: 768px) {
-    body {
-        padding: 0;
-        margin: 0;
-        height: 100%;
-        width: 100%;
-        position: relative; 
-    }
-    
-    .chat-container {
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        width: 100%;
-        height: 100vh;
-        height: 100dvh;
-        display: flex;
-        flex-direction: column;
-        z-index: 1000;
-    }
-    
-    /* Messages must be scrollable and shrinkable */
-    .chat-messages {
-        flex: 1 1 auto;
-        overflow-y: auto;
-        overflow-x: hidden;
-        padding: 1rem;
-        min-height: 100px; /* Changed from 0 to ensure some visibility */
-        -webkit-overflow-scrolling: touch;
-    }
-    
-    /* Input MUST stay at bottom and visible */
-    .chat-input-container {
-        position: sticky;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        z-index: 1001;
-        padding: 0.75rem;
-        padding-bottom: calc(0.75rem + env(safe-area-inset-bottom, 0));
-        background: #3a3a3a;
-        border-top: 1px solid rgba(255, 255, 255, 0.1);
-        flex-shrink: 0;
-        width: 100%;
-        box-sizing: border-box;
-        /* Ensure it's above everything */
-        transform: translate3d(0, 0, 0);
-    }
-    
-    .chat-input {
-        font-size: 16px; /* Prevents zoom */
-        padding: 0.75rem 3.5rem 0.75rem 1rem;
-        width: 100%;
-        box-sizing: border-box;
-    }
-    
-    /* Remove the :has selector - not well supported */
-    /* Delete this block: */
-    /* .chat-container:has(.chat-input:focus) {
-        height: 100%;
-    } */
 }
 
 /* ============================================
@@ -670,6 +598,11 @@ body {
     }
 }
 
+@supports (-webkit-touch-callout: none) {
+    .chat-container {
+        height: -webkit-fill-available;
+    }
+}
 @supports (height: 100dvh) {
     .chat-container {
         height: 100dvh;
