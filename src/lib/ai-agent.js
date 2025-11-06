@@ -494,7 +494,7 @@ async sendPersonalizedEmail(email, userName) {
         console.log('[EMAIL DEBUG] Starting sendPersonalizedEmail to:', email);
         
         // Ensure safe user name - never send "Hi Unknown"
-        const displayName = this._getSafeUserName(userName);
+        const displayName = userName || this.memory?.core_memory?.username || 'there';
         
         // Get conversation details
         const conversation = await this.env.DB.prepare(`
@@ -590,7 +590,7 @@ async sendViaResend(toEmail, htmlContent) {
     }
 }
 
-_getSafeUserName(userName) {
+/*_getSafeUserName(userName) {
     // Return provided name, memory name, or fallback
     if (userName && userName.trim() && userName.toLowerCase() !== 'there') {
         return userName.trim();
@@ -602,7 +602,7 @@ _getSafeUserName(userName) {
     }
     
     return 'there';  // Friendly fallback
-}
+}*/
 
 extractSpecificDetail(userMessages) {
   if (!userMessages || userMessages.length === 0) return "I'm ready to help.";
