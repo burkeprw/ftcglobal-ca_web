@@ -379,6 +379,11 @@ try {
         };
     }
 
+    console.log('=== DEBUG API KEY ===');
+    console.log('API Key exists:', !!this.env.CLAUDE_API_KEY);
+    console.log('API Key starts with:', this.env.CLAUDE_API_KEY?.substring(0, 15) + '...');
+    console.log('===================');
+
     // Check conversation limits
     const limits = await this.checkConversationLimits();
     if (limits.shouldEnd) {
@@ -523,8 +528,12 @@ async sendPersonalizedEmail(email, userName) {
             <a href="https://ftcglobal.ca/">FTCG Consulting</a></p>
         `;
         
+        console.log('[EMAIL DEBUG] About to call sendViaMailChannels');
+
         // Send via Resend
         await this.sendViaResend(email, emailBody);
+
+        console.log('[EMAIL DEBUG] Email sent successfully');
         
         // Log to database
         await this.env.DB.prepare(`
@@ -542,6 +551,9 @@ async sendPersonalizedEmail(email, userName) {
 }
 
 async sendViaResend(toEmail, htmlContent) {
+    console.log('[EMAIL DEBUG] Preparing Resend for', toEmail);
+    console.log('[EMAIL DEBUG] Config - FROM:', this.env.EMAIL_FROM);
+
     try {
         const response = await fetch('https://api.resend.com/emails', {
             method: 'POST',
@@ -559,6 +571,8 @@ async sendViaResend(toEmail, htmlContent) {
             })
         });
         
+        console.log('[EMAIL DEBUG] Resend HTTP Status:', response.status);
+
         const responseData = await response.json();
         
         if (!response.ok) {
@@ -566,9 +580,12 @@ async sendViaResend(toEmail, htmlContent) {
             throw new Error(`Email failed: ${response.status} - ${JSON.stringify(responseData)}`);
         }
         
+        console.log('[EMAIL DEBUG] Resend SUCCESS - Email ID:', responseData.id);
         return responseData;
         
     } catch (error) {
+        console.error('[EMAIL DEBUG] Resend FAILURE:', error.message);
+        console.error('[EMAIL DEBUG] Full error:', error);
         throw new Error(`Email failed: ${error.message}`);
     }
 }
