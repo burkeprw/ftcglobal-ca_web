@@ -89,6 +89,8 @@ body {
     background: #232323;
     width: 100%;
     height: 100%;
+    height: 100vh;
+    height: 100dvh;
     max-height: 100vh;
     max-height: -webkit-fill-available;
     position: fixed;
@@ -251,14 +253,14 @@ body {
     position: relative;
     display: flex;
     align-items: center;
-    gap: 0;
+    gap: 0.5rem;
     /* Prevent shrinking when keyboard appears */
     flex-shrink: 0;
 }
 
 .chat-input {
     flex: 1;
-    padding: 0.75rem 3.5rem 0.75rem 1rem; /* Extra padding-right for send icon */
+    padding: 0.75rem 1rem; /* Simplified - removed extra right padding */
     border: 1px solid rgba(255, 255, 255, 0.2);
     border-radius: 25px;
     font-size: 16px; /* 16px minimum to prevent iOS auto-zoom */
@@ -283,8 +285,8 @@ body {
 
 /* Icon-only send button inside input field */
 .send-button {
-    position: absolute;
-    right: 1.25rem;
+    position: relative;
+    right: auto;
     background: linear-gradient(135deg, #8b7aa8 0%, #6b5a88 100%);
     color: white;
     border: none;
@@ -302,6 +304,7 @@ body {
     min-width: 44px;
     min-height: 44px;
     touch-action: manipulation;
+     margin-left: 0.5rem;
 }
 
 .send-button::before {
@@ -442,6 +445,7 @@ body {
         margin: 0;
         height: 100%;
         width: 100%;
+        position: relative; 
     }
     
     .chat-container {
@@ -451,12 +455,10 @@ body {
         right: 0;
         bottom: 0;
         width: 100%;
-        /* Don't use 100vh - let JavaScript set height */
-        height: 100%;
-        max-height: -webkit-fill-available;
+        height: 100vh;
+        height: 100dvh;
         display: flex;
         flex-direction: column;
-        overflow: hidden;
         z-index: 1000;
     }
     
@@ -466,13 +468,13 @@ body {
         overflow-y: auto;
         overflow-x: hidden;
         padding: 1rem;
-        min-height: 50px; /* Very small to allow maximum shrinking */
+        min-height: 100px; /* Changed from 0 to ensure some visibility */
         -webkit-overflow-scrolling: touch;
     }
     
     /* Input MUST stay at bottom and visible */
     .chat-input-container {
-        position: relative;
+        position: sticky;
         bottom: 0;
         left: 0;
         right: 0;
