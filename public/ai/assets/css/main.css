@@ -15,6 +15,7 @@ html {
     scroll-behavior: smooth;
     /* iOS safe area variables */
     height: 100%;
+    height: -webkit-fill-available;
 }
 
 body {
@@ -87,18 +88,19 @@ body {
 .chat-container {
     background: #232323;
     width: 100%;
-    height: 100vh;
-    height: 100dvh;
-    max-height: 100vh;
     position: fixed;
-    overflow: hidden;
-    display: flex;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 100%;
+    display: none;
     flex-direction: column;
     border: none;
     border-radius: 0;
-    top: 0;
-    left: 0;
+    overflow: hidden;
     animation: slideUpMobile 0.3s ease-out;
+    z-index: 1000;
 }
 
 .chat-container.active {
@@ -109,7 +111,7 @@ body {
    CHAT MESSAGES AREA
    ============================================ */
 .chat-messages {
-    flex: 1;
+    flex: 1 1 auto;
     overflow-y: auto;
     overflow-x: hidden;
     padding: 1rem;
@@ -124,6 +126,7 @@ body {
     will-change: scroll-position;
     /* Critical for iOS keyboard - allows flex shrinking */
     min-height: 0;
+    -webkit-overflow-scrolling: touch;
 }
 
 /* Custom Scrollbar - Mobile Optimized */
@@ -256,7 +259,7 @@ body {
 
 .chat-input {
     flex: 1;
-    padding: 0.75rem 1rem; /* Simplified - removed extra right padding */
+    padding: 0.75rem 1rem;
     border: 1px solid rgba(255, 255, 255, 0.2);
     border-radius: 25px;
     font-size: 16px; /* 16px minimum to prevent iOS auto-zoom */
@@ -279,7 +282,7 @@ body {
     background: rgba(26, 26, 26, 1);
 }
 
-/* Icon-only send button inside input field */
+/* Icon-only send button */
 .send-button {
     position: relative;
     right: auto;
@@ -300,14 +303,13 @@ body {
     min-width: 44px;
     min-height: 44px;
     touch-action: manipulation;
-     margin-left: 0.5rem;
+    margin-left: 0.5rem;
 }
 
 .send-button::before {
     content: "\2192";
     font-weight: bold;
 }
-
 
 .send-button:active {
     transform: scale(0.95);
@@ -372,7 +374,8 @@ body {
 /* ============================================
    LOADING STATES
    ============================================ */
-.chat-input:disabled {
+.chat-input:disabled,
+.send-button:disabled {
     opacity: 0.5;
     cursor: not-allowed;
 }
@@ -423,10 +426,71 @@ body {
     }
 }
 
-/* iOS Safari specific - use webkit-fill-available for better keyboard handling */
-@supports (-webkit-touch-callout: none) {
+/* ============================================
+   MOBILE STYLES (to 768px)
+   ============================================ */
+@media (max-width: 768px) {
+    body {
+        padding: 0;
+        margin: 0;
+        width: 100%;
+        height: 100%;
+        position: fixed;
+        overflow: hidden;
+    }
+    
     .chat-container {
-        height: -webkit-fill-available;
+        position: fixed;
+        inset: 0; /* Shorthand for top/right/bottom/left: 0 */
+        display: flex;
+        flex-direction: column;
+        z-index: 1000;
+        height: 100%;
+        max-height: 100%;
+    }
+    
+    /* iOS-specific viewport handling */
+    @supports (-webkit-touch-callout: none) {
+        .chat-container {
+            height: -webkit-fill-available;
+            max-height: -webkit-fill-available;
+        }
+    }
+    
+    /* Messages must be scrollable and shrinkable */
+    .chat-messages {
+        flex: 1 1 auto;
+        overflow-y: auto;
+        overflow-x: hidden;
+        padding: 1rem;
+        min-height: 100px; /* Ensure some visibility when keyboard appears */
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    /* Input stays at bottom and visible */
+    .chat-input-container {
+        position: relative;
+        flex-shrink: 0;
+        padding: 0.75rem;
+        padding-bottom: calc(0.75rem + env(safe-area-inset-bottom, 0));
+        background: #3a3a3a;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        width: 100%;
+        box-sizing: border-box;
+    }
+    
+    .chat-input {
+        font-size: 16px; /* Prevents iOS zoom */
+        width: 100%;
+        box-sizing: border-box;
+    }
+}
+
+/* Ensure input stays visible when keyboard is open */
+@media (max-width: 768px) and (max-height: 500px) {
+    /* Likely keyboard is open */
+    .chat-messages {
+        max-height: 40vh;
     }
 }
 
@@ -437,6 +501,9 @@ body {
     body {
         font-size: 16px;
         padding: 2rem;
+        position: relative; /* Reset from mobile fixed */
+        height: auto;
+        overflow: visible;
     }
 
     .landing-container h1 {
@@ -468,18 +535,24 @@ body {
         border-radius: 20px;
         width: 90%;
         max-width: 600px;
-        height: 80vh;
+        height: 80vh; /* Desktop specific height */
         max-height: 700px;
-        position: relative;
+        position: relative; /* Changed from fixed for desktop */
+        top: auto;
+        left: auto;
+        right: auto;
+        bottom: auto;
         box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
         border: 1px solid rgba(255, 255, 255, 0.1);
         animation: slideUp 0.5s ease-out;
+        z-index: auto;
     }
 
     .chat-messages {
         padding: 2rem;
         padding-top: 2rem; /* Reset safe area on desktop */
         border-radius: 20px 20px 0 0;
+        min-height: 0; /* Reset mobile constraint */
     }
 
     .chat-messages::-webkit-scrollbar {
@@ -502,11 +575,11 @@ body {
     }
 
     .chat-input {
-        padding: 0.8rem 4rem 0.8rem 1.2rem;
+        padding: 0.8rem 1.2rem;
         font-size: 1rem;
     }
 
-    /* Desktop: side-by-side send button */
+    /* Desktop: text send button */
     .send-button {
         position: relative;
         right: auto;
@@ -561,6 +634,11 @@ body {
     outline-offset: 2px;
 }
 
+/* Container focus-within for better keyboard handling */
+.chat-container:focus-within {
+    /* Optional: Add any adjustments needed when input is focused */
+}
+
 /* High contrast mode support */
 @media (prefers-contrast: high) {
     .chat-input {
@@ -598,20 +676,9 @@ body {
     }
 }
 
-@supports (-webkit-touch-callout: none) {
-    .chat-container {
-        height: -webkit-fill-available;
+/* Better keyboard handling using env() */
+@supports (padding-bottom: env(keyboard-inset-height)) {
+    .chat-input-container {
+        padding-bottom: calc(1rem + env(keyboard-inset-height, 0px));
     }
-}
-@supports (height: 100dvh) {
-    .chat-container {
-        height: 100dvh;
-        max-height: 100dvh;
-    }
-}
-
-/* When input is focused, ensure container stays in view */
-.chat-input:focus ~ .chat-container {
-    height: auto;
-    max-height: calc(100vh - env(keyboard-inset-height, 0));
 }
