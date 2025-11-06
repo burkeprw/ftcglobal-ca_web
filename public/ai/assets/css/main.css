@@ -486,6 +486,13 @@ body {
     }
 }
 
+    /* Show the line break on screens smaller than 768px */
+    @media (max-width: 767px) {
+        .mobile-only-br {
+            display: block;
+        }
+    }
+
 /* Ensure input stays visible when keyboard is open */
 @media (max-width: 768px) and (max-height: 500px) {
     /* Likely keyboard is open */
@@ -603,6 +610,11 @@ body {
 
     .send-button:active {
         transform: scale(1);
+    }
+
+    /* Hide the line break by default on larger screens */
+    .mobile-only-br {
+        display: none;
     }
 
     @keyframes slideUp {

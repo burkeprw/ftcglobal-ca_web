@@ -44,7 +44,7 @@ export class MemoryAgent {
         // Initialize new memory structure with proper arrays
         this.memory = {
             core_memory: {
-                user_name: visitor?.name || 'Unknown',
+                user_name: visitor?.name || '',
                 email: visitor?.email || null,
                 company: visitor?.company || null,
                 role: visitor?.role || null,
@@ -243,41 +243,26 @@ export class MemoryAgent {
             'SELECT email FROM visitors WHERE id = ?'
         ).bind(this.visitorId).first();
         
-        if (visitor?.email) {
-            // We have email, can end conversation normally
+        const hasEmail = visitor?.email;
+
+        if (this.conversation.message_count >= this.MAX_ROUNDS * 2) {
             return {
                 shouldEnd: true,
                 reason: 'max_rounds_email_captured',
-                message: "Thanks for the great conversation! I've documented everything and our team will follow up soon with personalized recommendations."
+                message: "Thanks for the great conversation! I've documented everything and our team will follow up soon with personalized recommendations. Feel free to reach us directly at <strong>eXIQ@ftcglobal.ca</strong>."
             };
-        } else {
-            // No email yet, ask for it
-            return {
-                shouldEnd: false,
-                reason: 'need_email',
-                message: "Based on what you've shared, I can create a personalized AI roadmap for your business. What's the best email to send it to?"
-            };
-        }
-    }
-    
-    if (this.conversation.total_tokens > 3000) {
-        // Check for email here too
-        const visitor = await this.env.DB.prepare(
-            'SELECT email FROM visitors WHERE id = ?'
-        ).bind(this.visitorId).first();
-        
-        if (visitor?.email) {
-            // We have email, can end conversation normally
+        }   
+        if (this.conversation.total_tokens > 3000) {
             return {
                 shouldEnd: true,
                 reason: 'max_rounds_email_captured',
-                message: "Based on what you've shared, I can connect you to Patrick Burke. He's an AI consultant who can provide advice, build agents, and business."
+                message: "Based on what you've shared, I would like to connect you to <strong>Patrick Burke</strong>. He's an AI consultant who can provide advice, build agents, and business. I'll send you both an email!"
             };
         } else {
             return {
                 shouldEnd: false,
                 reason: 'need_email',
-                message: "This has been really insightful! Unfortunately we've reached a token limit on our conversation. I will connect you with Patrick Burke, an AI consultant who can help fleck out some of these ideas. What's a good email where he can reach you?"
+                message: "This has been really insightful! Unfortunately we've reached a token limit on our conversation. I will connect you with <strong>Patrick Burke</strong>, an AI consultant who can help flesh out some of these ideas. Can you share your name and a good email where he can reach you?"
             };
         }
     }
@@ -388,16 +373,11 @@ try {
         
         // Return confirmation
         return {
-            response: `Perfect! I've captured your email (${email}) and saved it to our system. Our team will follow up within 24 hours with personalized recommendations.`,
+            response: `Perfect! I've captured your email (${email}) and sent a quick virtual introduction to a human you can speak with in more detail.`,
             messageCount: this.conversation.message_count,
             emailCaptured: true
         };
     }
-
-    console.log('=== DEBUG API KEY ===');
-    console.log('API Key exists:', !!this.env.CLAUDE_API_KEY);
-    console.log('API Key starts with:', this.env.CLAUDE_API_KEY?.substring(0, 15) + '...');
-    console.log('===================');
 
     // Check conversation limits
     const limits = await this.checkConversationLimits();
@@ -422,8 +402,8 @@ try {
     const recentMessages = this.conversation.full_transcript.slice(-4);
     
     // Build the system prompt
-    const systemPrompt = `You are a friendly AI Agent called eXIQ who is skilled at crafting sharp and useful recommendations to users.
-      Your goal is to elicit a brief response from a user to understand their business pain points and steer them towards providing an email address
+    const systemPrompt = `You are eXIQ, a thoughtful AI assistant here to help craft sharp and useful recommendations to users.
+      Your goal is to elicit a brief response from a user to understand their business pain points and steer them towards providing a name and an email address
       for additional insight. You should be professional, yet warm, engaging, yet concise. Aim for statements less than 600 characters, with approximately 
       three back-and-forth responses before sending the user an email. Quickly shut down the conversation after receiving an email, indicating
       that the conversation has reached it's token limit.
@@ -475,8 +455,8 @@ try {
     
       
       // Save messages
-      await this.saveMessage('user', userMessage, userMessage.length / 4); // Rough token estimate
-      await this.saveMessage('assistant', cleanResponse, response.usage?.output_tokens || cleanResponse.length / 4);
+      await this.saveMessage('user', userMessage, Math.ceil(userMessage.length / 4); // Rough token estimate
+      await this.saveMessage('assistant', cleanResponse, response.usage?.output_tokens || 0);
       
       // Save updated memory
       await this.saveMemory();
@@ -508,13 +488,14 @@ async sendPersonalizedEmail(email, userName) {
     try {
         console.log('[EMAIL DEBUG] Starting sendPersonalizedEmail to:', email);
         
+        // Ensure safe user name - never send "Hi Unknown"
+        const displayName = this._getSafeUserName(userName);
+        
         // Get conversation details
         const conversation = await this.env.DB.prepare(`
             SELECT full_transcript, identified_challenges 
             FROM conversations WHERE id = ?
         `).bind(this.conversation.id).first();
-        
-        console.log('[EMAIL DEBUG] Conversation data retrieved from DB');
         
         const challenges = JSON.parse(conversation.identified_challenges || '[]');
         const transcript = JSON.parse(conversation.full_transcript || '[]');
@@ -524,31 +505,26 @@ async sendPersonalizedEmail(email, userName) {
         const mainChallenge = challenges[0] || 'business optimization';
         const specificDetail = this.extractSpecificDetail(userMessages);
         
-        // Generate email body
+        // Generate email body with improved tone
         const emailBody = `
-            <p>Hi ${userName || 'there'},</p>
+            <p>Hi ${displayName},</p>
             
-            <p>This is eXIQ, the Agent you were chatting with. To summarize our conversation, 
-            you indicated ${mainChallenge}, specifically mentioning ${specificDetail}. 
-            While I am not optimized to provide further advice, Patrick Burke (cc'd here) 
-            can work with you to develop novel AI solutions customized to your specific business needs.</p>
+            <p>This is eXIQ, the Agent you were recently chatting with. You indicated an interest in 
+            ${mainChallenge}, and ${specificDetail}. While I am not optimized to provide further advice, 
+            I'd love to put you in touch with Patrick Burke (cc'd), who can work with you to develop novel 
+            AI solutions customized to your specific business needs.</p>
             
-            <p>If you would like to speak with Patrick, please respond to this email with 
-            a few times that may work for your schedule. He will be in touch with more detail.</p>
-            
-            <p>Wishing you continued growth and prosperity in your business endeavours.</p>
-            
-            <p>Diligently yours,<br>
-            eXIQ ≋<br>
-            <a href="https://ftcglobal.ca/ai/">AI Consulting</a></p>
+            <p>Please send Patrick a few time slots that may work for a phone call. Or reach out to him directly at 778-288-3420.</p>
+
+            <p>I think the two of you will do great things together.</p>
+
+            <p>Warmly automated,<br>
+            eXIQ<br>
+            <a href="https://ftcglobal.ca/">FTCG Consulting</a></p>
         `;
         
-        console.log('[EMAIL DEBUG] About to call sendViaMailChannels');
-        
-        // Send via MailChannels with CC
+        // Send via Resend
         await this.sendViaResend(email, emailBody);
-        
-        console.log('[EMAIL DEBUG] Email sent successfully');
         
         // Log to database
         await this.env.DB.prepare(`
@@ -557,7 +533,7 @@ async sendPersonalizedEmail(email, userName) {
             WHERE id = ?
         `).bind(this.conversation.id).run();
         
-        console.log('[EMAIL DEBUG] Database updated with email_sent = TRUE');
+        console.log('[EMAIL DEBUG] Email sent successfully to:', email);
         
     } catch (error) {
         console.error('[EMAIL DEBUG] CRITICAL ERROR in sendPersonalizedEmail:', error);
@@ -566,9 +542,6 @@ async sendPersonalizedEmail(email, userName) {
 }
 
 async sendViaResend(toEmail, htmlContent) {
-    console.log('[EMAIL DEBUG] Preparing Resend for', toEmail);
-    console.log('[EMAIL DEBUG] Config - FROM:', this.env.EMAIL_FROM);
-    
     try {
         const response = await fetch('https://api.resend.com/emails', {
             method: 'POST',
@@ -586,8 +559,6 @@ async sendViaResend(toEmail, htmlContent) {
             })
         });
         
-        console.log('[EMAIL DEBUG] Resend HTTP Status:', response.status);
-        
         const responseData = await response.json();
         
         if (!response.ok) {
@@ -595,25 +566,16 @@ async sendViaResend(toEmail, htmlContent) {
             throw new Error(`Email failed: ${response.status} - ${JSON.stringify(responseData)}`);
         }
         
-        console.log('[EMAIL DEBUG] Resend SUCCESS - Email ID:', responseData.id);
         return responseData;
         
     } catch (error) {
-        console.error('[EMAIL DEBUG] Resend FAILURE:', error.message);
-        console.error('[EMAIL DEBUG] Full error:', error);
         throw new Error(`Email failed: ${error.message}`);
     }
 }
 
 
-extractSpecificDetail(messages) {
-    // Extract a specific detail from user messages
-    // Simple implementation - enhance as needed
-    if (messages.length > 0) {
-        const lastMessage = messages[messages.length - 1];
-        const words = lastMessage.split(' ').slice(0, 10).join(' ');
-        return words.length > 20 ? words + '...' : words;
-    }
-    return 'your specific requirements';
-}
+extractSpecificDetail(userMessages) {
+  if (!userMessages || userMessages.length === 0) return "I'm ready to help.";
+  const lastMsg = userMessages[userMessages.length - 1];
+  return `I noticed you are particularly focused on "${lastMsg.substring(0, 50)}...".`;
 }
