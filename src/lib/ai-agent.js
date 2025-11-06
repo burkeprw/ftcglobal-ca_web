@@ -455,7 +455,7 @@ try {
     
       
       // Save messages
-      await this.saveMessage('user', userMessage, Math.ceil(userMessage.length / 4); // Rough token estimate
+      await this.saveMessage('user', userMessage, Math.ceil(userMessage.length / 4)); // Rough token estimate
       await this.saveMessage('assistant', cleanResponse, response.usage?.output_tokens || 0);
       
       // Save updated memory
