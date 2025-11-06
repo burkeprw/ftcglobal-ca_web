@@ -24,12 +24,14 @@
         <div class="typing-indicator" id="typingIndicator"></div>
         
         <div class="chat-input-container">
-            <input type="text" 
-                   class="chat-input" 
-                   id="chatInput" 
-                   placeholder="Type your message..." 
-                   onkeypress="handleKeyPress(event)"
-                   disabled>
+            <textarea
+                class="chat-input" 
+                id="chatInput" 
+                placeholder="Type your message..." 
+                onkeypress="handleKeyPress(event)"
+                rows="1"
+                disabled
+            ></textarea>
             <button class="send-button" id="sendButton" onclick="sendMessage()" disabled></button>
         </div>
     </div>
@@ -45,6 +47,7 @@
 
     <!-- Load scripts -->
     <script src="assets/js/chat.js"></script>
+    <script src="assets/js/auto-expand-input.js"></script>
     <script src="assets/js/ios-keyboard-fix.js"></script>
 </body>
 </html><!-- deployed -->

@@ -623,6 +623,91 @@ body {
 }
 
 /* ============================================
+   AUTO-EXPANDING INPUT MODIFICATIONS
+   ============================================ */
+
+/* Change input to textarea for better multi-line support */
+/* If you're using an input element, change it to textarea in HTML */
+
+.chat-input {
+    /* Existing styles plus: */
+    resize: none; /* Prevent manual resizing */
+    overflow-y: hidden; /* Hide scrollbar by default */
+    transition: height 0.1s ease; /* Smooth height transition */
+    min-height: 44px; /* Minimum height */
+    max-height: 120px; /* Maximum height (about 4-5 lines) */
+    line-height: 1.5; /* Consistent line height */
+    
+    /* Better text handling */
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
+/* When input is expanded */
+.chat-input-container.expanded {
+    padding-top: 0.75rem; /* Optional: adjust padding when expanded */
+    padding-bottom: calc(0.75rem + env(safe-area-inset-bottom));
+}
+
+/* Scrollbar styling when content exceeds max height */
+.chat-input::-webkit-scrollbar {
+    width: 4px;
+}
+
+.chat-input::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.chat-input::-webkit-scrollbar-thumb {
+    background: rgba(139, 122, 168, 0.3);
+    border-radius: 2px;
+}
+
+.chat-input::-webkit-scrollbar-thumb:hover {
+    background: rgba(139, 122, 168, 0.5);
+}
+
+/* Adjust send button alignment when input expands */
+.chat-input-container.expanded .send-button {
+    align-self: flex-end; /* Align to bottom of expanded input */
+    margin-bottom: 0.25rem; /* Small offset from bottom */
+}
+
+/* Mobile-specific adjustments */
+@media (max-width: 768px) {
+    .chat-input {
+        max-height: 100px; /* Slightly smaller max height on mobile */
+    }
+    
+    /* Ensure container adjusts properly */
+    .chat-input-container {
+        align-items: flex-end; /* Align items to bottom */
+        min-height: 60px; /* Minimum container height */
+    }
+}
+
+/* Desktop-specific adjustments */
+@media (min-width: 769px) {
+    .chat-input {
+        max-height: 150px; /* Can be taller on desktop */
+    }
+}
+
+/* Animation for height changes */
+@keyframes expandInput {
+    from {
+        opacity: 0.95;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+.chat-input:focus {
+    animation: expandInput 0.2s ease;
+}
+
+/* ============================================
    ACCESSIBILITY & PRINT STYLES
    ============================================ */
 
