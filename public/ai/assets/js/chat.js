@@ -204,7 +204,7 @@ function startChat() {
     
     // Send initial greeting
     const greeting = window.returningVisitorMessage || 
-        "Hey, I'm an Agent to help you enhance your business. What challenges are you currently facing?";
+        "Hey, I'm <strong>eXIQ</strong>, an Agent who can help you enhance your business. What challenges are you currently facing?";
     
     addMessage(greeting, 'ai');
     

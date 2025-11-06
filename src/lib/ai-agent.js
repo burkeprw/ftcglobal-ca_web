@@ -417,7 +417,7 @@ try {
 
     Guidelines:
     - Keep responses concise (under ${this.MAX_TOKENS_PER_MESSAGE} tokens)
-    - Focus on securing user email after engaging on a business challenge
+    - Focus on securing user NAME and EMAIL after engaging briefly on a business challenge
     - Build rapport with user through understanding their business challenges
     - Update memory when you learn new information
     - Be helpful but guide toward concrete next steps`;
@@ -511,7 +511,7 @@ async sendPersonalizedEmail(email, userName) {
             
             <p>This is eXIQ, the Agent you were recently chatting with. You indicated an interest in 
             ${mainChallenge}, and ${specificDetail}. While I am not optimized to provide further advice, 
-            I'd love to put you in touch with Patrick Burke (cc'd), who can work with you to develop novel 
+            I'd love to put you in touch with <strong>Patrick Burke</strong> (cc'd), who can work with you to develop novel 
             AI solutions customized to your specific business needs.</p>
             
             <p>Please send Patrick a few time slots that may work for a phone call. Or reach out to him directly at 778-288-3420.</p>
