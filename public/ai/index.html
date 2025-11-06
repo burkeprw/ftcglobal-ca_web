@@ -34,6 +34,25 @@
             ></textarea>
             <button class="send-button" id="sendButton" onclick="sendMessage()" disabled></button>
         </div>
+
+        <!-- Conversation End Container (hidden by default) -->
+        <div class="conversation-end-container" style="display: none;">
+            <p class="end-message">
+                Thanks for chatting with eXIQ! Patrick will be in touch soon.
+            </p>
+            <button class="close-button" onclick="showThankYouAndClose()">
+                Close eXIQ Agent
+            </button>
+        </div>
+
+        <!-- Thank You Modal (hidden by default) -->
+        <div class="thank-you-modal">
+            <div class="modal-content">
+                <h2>Thank You!</h2>
+                <p>Patrick will be in touch shortly.</p>
+                <div class="spinner"></div>
+            </div>
+        </div>
     </div>
 
     <!-- Memory Panel -->

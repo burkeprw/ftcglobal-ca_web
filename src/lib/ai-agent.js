@@ -475,11 +475,13 @@ try {
         );
       }
       
+      const emailWasSent = await this.checkIfEmailSent();
+
       return {
-        response: cleanResponse,
-        messageCount: this.conversation.message_count,
-        recommendations: recommendations,
-        shouldEndConversation: false
+          response: cleanResponse,
+          conversationId: this.conversation.id,
+          emailSent: emailWasSent,  // NEW FLAG
+          conversationEnded: emailWasSent  // NEW FLAG
       };
     }
 
@@ -560,6 +562,19 @@ async sendPersonalizedEmail(email, userName) {
     } catch (error) {
         console.error('[EMAIL DEBUG] CRITICAL ERROR in sendPersonalizedEmail:', error);
         throw error; // Re-throw so caller knows it failed
+    }
+}
+
+async checkIfEmailSent() {
+    try {
+        const conversation = await this.env.DB.prepare(
+            'SELECT email_sent FROM conversations WHERE id = ?'
+        ).bind(this.conversation.id).first();
+        
+        return conversation?.email_sent === 1 || conversation?.email_sent === true;
+    } catch (error) {
+        console.error('[EMAIL CHECK] Error:', error);
+        return false;
     }
 }
 

@@ -348,6 +348,21 @@ async function sendMessage() {
         });
         
         const data = await response.json();
+
+        // Check if email was sent and conversation ended
+        if (data.emailSent === true || data.conversationEnded === true) {
+            console.log('[CHAT] Email sent - ending conversation');
+            
+            // Display the final message
+            addMessage(data.response, 'assistant');
+            
+            // Hide input and show close button
+            setTimeout(() => {
+                handleConversationEnd();
+            }, 500);
+            
+            return; // Stop further processing
+        }
         
         if (data.error) {
             addMessage(`Error: ${data.error}`, 'ai');
@@ -603,6 +618,68 @@ async function resetMemory() {
     }
 }
 
+// ============================================
+// HANDLE CONVERSATION END (AFTER EMAIL SENT)
+// ============================================
+function handleConversationEnd() {
+    console.log('[CHAT] Conversation ended - hiding input and showing close button');
+    
+    // Hide the input container
+    const inputContainer = document.querySelector('.chat-input-container');
+    if (inputContainer) {
+        inputContainer.style.display = 'none';
+        console.log('[CHAT] Input container hidden');
+    }
+    
+    // Show the conversation end container with close button
+    const endContainer = document.querySelector('.conversation-end-container');
+    if (endContainer) {
+        endContainer.style.display = 'flex';
+        
+        // Scroll to show the button
+        setTimeout(() => {
+            endContainer.scrollIntoView({ behavior: 'smooth', block: 'end' });
+        }, 300);
+        
+        console.log('[CHAT] Close button shown');
+    }
+    
+    // Disable further input
+    const chatInput = document.querySelector('.chat-input');
+    if (chatInput) {
+        chatInput.disabled = true;
+    }
+}
+
+// ============================================
+// SHOW THANK YOU AND CLOSE WINDOW
+// ============================================
+function showThankYouAndClose() {
+    console.log('[CHAT] Showing thank you modal and closing');
+    
+    // Show the thank you modal
+    const modal = document.querySelector('.thank-you-modal');
+    if (modal) {
+        modal.classList.add('visible');
+    }
+    
+    // Wait 2 seconds, then close
+    setTimeout(() => {
+        console.log('[CHAT] Attempting to close window');
+        
+        // Try to close the window (works if opened via window.open())
+        window.close();
+  
+        // Fallback: Check if window is still open after 100ms
+        setTimeout(() => {
+            if (!window.closed) {
+                console.log('[CHAT] Cannot close window, redirecting to main site');
+                window.location.href = 'https://ftcglobal.ca';
+            }
+        }, 100);
+    }, 2000);
+}
+
 // Email validation
 function validateEmail(email) {
     const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -616,3 +693,4 @@ window.handleKeyPress = handleKeyPress;
 window.toggleMemory = toggleMemory;
 window.resetMemory = resetMemory;
 window.submitEmail = submitEmail;
+window.showThankYouAndClose = showThankYouAndClose;  
