@@ -375,7 +375,8 @@ try {
         return {
             response: `Perfect! I've captured your email (${email}) and sent a quick virtual introduction to a human you can speak with in more detail.`,
             messageCount: this.conversation.message_count,
-            emailCaptured: true
+            emailCaptured: true,
+            shouldEndConversation: true
         };
     }
 
@@ -493,9 +494,18 @@ async sendPersonalizedEmail(email, userName) {
     try {
         console.log('[EMAIL DEBUG] Starting sendPersonalizedEmail to:', email);
         
-        // Ensure safe user name - never send "Hi Unknown"
-        const displayName = userName || this.memory?.core_memory?.username || 'there';
-        
+        // 1. robust 'displayName' resolution
+        // Fix typo: use 'user_name' (matches memory structure), not 'username'
+        let displayName = userName || this.memory?.core_memory?.user_name;
+
+        // 2. Clean up if it captured weird data like "Unknown" or just whitespace
+        if (!displayName || 
+            displayName.trim().toLowerCase() === 'unknown' || 
+            displayName.trim().toLowerCase() === 'there') {
+            displayName = 'there';
+        }
+      
+
         // Get conversation details
         const conversation = await this.env.DB.prepare(`
             SELECT full_transcript, identified_challenges 
@@ -508,14 +518,14 @@ async sendPersonalizedEmail(email, userName) {
         // Extract specific details from conversation
         const userMessages = transcript.filter(m => m.role === 'user').map(m => m.content);
         const mainChallenge = challenges[0] || 'business optimization';
-        const specificDetail = this.extractSpecificDetail(userMessages);
+        mainChallenge = mainChallenge.replace(/^['"[\[]+|['"\]]+$/g, '').trim();
         
         // Generate email body with improved tone
         const emailBody = `
             <p>Hi ${displayName},</p>
             
             <p>This is eXIQ, the Agent you were recently chatting with. You indicated an interest in 
-            ${mainChallenge}, and ${specificDetail}. While I am not optimized to provide further advice, 
+            ${mainChallenge}. While I am not optimized to provide further advice, 
             I'd love to put you in touch with <strong>Patrick Burke</strong> (cc'd), who can work with you to develop novel 
             AI solutions customized to your specific business needs.</p>
             
@@ -535,10 +545,7 @@ async sendPersonalizedEmail(email, userName) {
 
         console.log('[EMAIL DEBUG] Email sent successfully');
         
-        // Hide input and mark conversation as ended
-        if (typeof handleEmailSentSuccessfully === 'function') {
-            handleEmailSentSuccessfully();
-        }
+
 
 
         // Log to database
@@ -596,23 +603,18 @@ async sendViaResend(toEmail, htmlContent) {
     }
 }
 
-/*_getSafeUserName(userName) {
-    // Return provided name, memory name, or fallback
+_getSafeUserName(userName) {
+    // 1. Prefer explicitly passed name if valid
     if (userName && userName.trim() && userName.toLowerCase() !== 'there') {
         return userName.trim();
     }
     
-    if (this.memory?.core_memory?.username && 
-        this.memory.core_memory.username.toLowerCase() !== 'there') {
-        return this.memory.core_memory.username;
+    // 2. Fallback to memory (FIXED: using user_name instead of username)
+    if (this.memory?.core_memory?.user_name && 
+        this.memory.core_memory.user_name.toLowerCase() !== 'there') {
+        return this.memory.core_memory.user_name;
     }
     
-    return 'there';  // Friendly fallback
-}*/
-
-extractSpecificDetail(userMessages) {
-  if (!userMessages || userMessages.length === 0) return "I'm ready to help.";
-  const lastMsg = userMessages[userMessages.length - 1];
-  return `I noticed you are particularly focused on "${lastMsg.substring(0, 50)}...".`;
-}
+    // 3. Final fallback
+    return 'there';
 }

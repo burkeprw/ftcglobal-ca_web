@@ -52,66 +52,177 @@ document.addEventListener('DOMContentLoaded', async function() {
     handleIOSKeyboard();
 });
 
-// iOS keyboard handling - REPLACE lines 55-88 with this:
+function handleEmailSentSuccessfully() {
+    /*
+     Called when sendPersonalizedEmail() completes successfully to hide search bar/input container and marks conversation as ended.
+     */
+    console.log('[CHAT] Email sent successfully - hiding input');
+    
+    const inputContainer = document.querySelector('.chat-input-container');
+    const chatInput = document.querySelector('.chat-input');
+    const sendButton = document.querySelector('.send-button');
+    
+    if (inputContainer) {
+        // Hide the input
+        inputContainer.classList.add('email-sent');
+        
+        // Disable inputs (backup)
+        if (chatInput) {
+            chatInput.disabled = true;
+            chatInput.placeholder = '';
+        }
+        if (sendButton) {
+            sendButton.disabled = true;
+        }
+        
+        // Scroll to bottom
+        const chatMessages = document.querySelector('.chat-messages');
+        if (chatMessages) {
+            setTimeout(() => {
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }, 100);
+        }
+        
+        console.log('[CHAT] Input container hidden - conversation ended');
+    }
+}
+
+// iOS keyboard handling 
+// Supports visualViewport API + fallbacks for older iOS
 function handleIOSKeyboard() {
-    const chatInput = document.getElementById('chatInput');
-    const chatMessages = document.getElementById('chatMessages');
-    const chatContainer = document.getElementById('chatContainer');
+    // Detect iOS
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+    if (!isIOS) return; // Only run on iOS
     
-    if (!chatInput || !chatMessages) return;
+    // Get elements - supports both ID and class selectors
+    const chatContainer = document.getElementById('chatContainer') || document.querySelector('.chat-container');
+    const chatInput = document.getElementById('chatInput') || document.querySelector('.chat-input');
+    const chatMessages = document.getElementById('chatMessages') || document.querySelector('.chat-messages');
+    const inputContainer = document.querySelector('.chat-input-container');
     
-    // Check if iOS
-    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+    if (!chatContainer || !chatInput) {
+        console.warn('[iOS] Required elements not found');
+        return;
+    }
     
-    if (isIOS) {
-        // Function to update container height
-        const updateHeight = () => {
-            if (chatContainer.style.display !== 'none') {
-                // Use visualViewport if available (best method)
-                if (window.visualViewport) {
-                    chatContainer.style.height = `${window.visualViewport.height}px`;
-                } else {
-                    // Fallback: use window.innerHeight
-                    chatContainer.style.height = `${window.innerHeight}px`;
-                }
+    console.log('[iOS] Initializing enhanced keyboard handling');
+    
+    // Track viewport state
+    let initialHeight = window.innerHeight;
+    let keyboardHeight = 0;
+    
+    // Main height update function
+    const updateHeight = () => {
+        if (chatContainer.style.display === 'none') return;
+        
+        const currentHeight = window.innerHeight;
+        keyboardHeight = initialHeight - currentHeight;
+        
+        // Keyboard is open (height difference > 50px)
+        if (keyboardHeight > 50) {
+            console.log('[iOS] Keyboard detected. Height:', currentHeight, 'px');
+            
+            // Method 1: visualViewport API (best - iOS 13+)
+            if (window.visualViewport) {
+                chatContainer.style.height = `${window.visualViewport.height}px`;
+                chatContainer.style.maxHeight = `${window.visualViewport.height}px`;
+                chatContainer.style.transform = `translateY(${window.visualViewport.offsetTop}px)`;
+            } else {
+                // Fallback: use window.innerHeight
+                chatContainer.style.height = `${currentHeight}px`;
+                chatContainer.style.maxHeight = `${currentHeight}px`;
+            }
+            
+            // Scroll input into view smoothly
+            if (inputContainer) {
+                inputContainer.scrollIntoView({ behavior: 'smooth', block: 'end' });
+            }
+            
+            // Scroll messages to bottom
+            if (chatMessages) {
+                setTimeout(() => {
+                    chatMessages.scrollTop = chatMessages.scrollHeight;
+                }, 100);
+            }
+        } 
+        // Keyboard is closed
+        else {
+            console.log('[iOS] Keyboard closed. Resetting height.');
+            
+            // Reset to full height
+            chatContainer.style.height = '100%';
+            chatContainer.style.maxHeight = '100%';
+            chatContainer.style.transform = '';
+        }
+    };
+    
+    // Visual viewport handler (modern approach)
+    if (window.visualViewport) {
+        const updateViewportInfo = () => {
+            const offsetTop = window.visualViewport.offsetTop;
+            const height = window.visualViewport.height;
+            
+            if (height < initialHeight - 50) { // Keyboard open
+                chatContainer.style.height = `${height}px`;
+                chatContainer.style.maxHeight = `${height}px`;
+                chatContainer.style.transform = `translateY(${offsetTop}px)`;
             }
         };
         
-        // Initial height set
-        updateHeight();
-        
-        // Update when keyboard shows/hides
-        if (window.visualViewport) {
-            window.visualViewport.addEventListener('resize', updateHeight);
-            window.visualViewport.addEventListener('scroll', updateHeight);
-        }
-        
-        // Fallback: window resize
-        window.addEventListener('resize', updateHeight);
-        
-        // Focus handler - scroll to bottom when keyboard appears
-        chatInput.addEventListener('focus', () => {
-            setTimeout(() => {
-                // Update height first
-                updateHeight();
-                // Scroll messages to bottom
-                chatMessages.scrollTop = chatMessages.scrollHeight;
-                // Ensure input is visible
-                chatInput.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-            }, 300); // Delay for iOS keyboard animation
-        });
-        
-        // Prevent viewport bouncing
-        document.body.addEventListener('touchmove', (e) => {
-            if (chatContainer.style.display !== 'none') {
-                // Allow scrolling only in messages area
-                if (!chatMessages.contains(e.target)) {
-                    e.preventDefault();
-                }
-            }
-        }, { passive: false });
+        window.visualViewport.addEventListener('resize', updateViewportInfo);
+        window.visualViewport.addEventListener('scroll', updateViewportInfo);
     }
+    
+    // Input focus handler
+    chatInput.addEventListener('focus', function() {
+        console.log('[iOS] Input focused');
+        
+        setTimeout(() => {
+            updateHeight();
+            this.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            if (chatMessages) {
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+        }, 300);
+    });
+    
+    // Input blur handler (keyboard closing)
+    chatInput.addEventListener('blur', function() {
+        console.log('[iOS] Input blurred - keyboard closing');
+        
+        setTimeout(() => {
+            updateHeight();
+            chatContainer.style.transform = '';
+        }, 300);
+    });
+    
+    // Window resize handler (fallback)
+    window.addEventListener('resize', updateHeight);
+    
+    // Orientation change handler (critical for iPad!)
+    window.addEventListener('orientationchange', function() {
+        console.log('[iOS] Orientation changed');
+        
+        setTimeout(() => {
+            initialHeight = window.innerHeight;
+            updateHeight();
+        }, 500);
+    });
+    
+    // Prevent viewport bounce
+    document.body.addEventListener('touchmove', (e) => {
+        if (chatContainer && chatContainer.style.display !== 'none') {
+            if (chatMessages && !chatMessages.contains(e.target)) {
+                e.preventDefault();
+            }
+        }
+    }, { passive: false });
+    
+    // Initial setup
+    console.log('[iOS] Setting initial height:', initialHeight, 'px');
+    updateHeight();
 }
+
 
 // Identify visitor - FIXED: removed extra 'a'
 async function identifyVisitor() {
