@@ -590,6 +590,19 @@ async sendViaResend(toEmail, htmlContent) {
     }
 }
 
+_getSafeUserName(userName) {
+    // Return provided name, memory name, or fallback
+    if (userName && userName.trim() && userName.toLowerCase() !== 'there') {
+        return userName.trim();
+    }
+    
+    if (this.memory?.core_memory?.username && 
+        this.memory.core_memory.username.toLowerCase() !== 'there') {
+        return this.memory.core_memory.username;
+    }
+    
+    return 'there';  // Friendly fallback
+}
 
 extractSpecificDetail(userMessages) {
   if (!userMessages || userMessages.length === 0) return "I'm ready to help.";
