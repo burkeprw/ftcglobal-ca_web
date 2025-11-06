@@ -535,6 +535,12 @@ async sendPersonalizedEmail(email, userName) {
 
         console.log('[EMAIL DEBUG] Email sent successfully');
         
+        // Hide input and mark conversation as ended
+        if (typeof handleEmailSentSuccessfully === 'function') {
+            handleEmailSentSuccessfully();
+        }
+
+
         // Log to database
         await this.env.DB.prepare(`
             UPDATE conversations 

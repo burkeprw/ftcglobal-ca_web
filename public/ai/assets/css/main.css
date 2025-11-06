@@ -480,11 +480,20 @@ body {
     }
     
     .chat-input {
-        font-size: 16px; /* Prevents iOS zoom */
         width: 100%;
         box-sizing: border-box;
+        font-size: 14px;  /* CHANGED FROM 16px TO 14px */
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;  /* ADD THIS */
+        min-height: 44px;
+        appearance: none;
     }
-}
+
+    .chat-input::placeholder {
+        color: rgba(255, 255, 255, 0.4);
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;  /* ADD THIS */
+    }
+        
+    }
 
     /* Show the line break on screens smaller than 768px */
     @media (max-width: 767px) {
@@ -778,4 +787,14 @@ body {
     .chat-input-container {
         padding-bottom: calc(1rem + env(keyboard-inset-height, 0px));
     }
+}
+
+/* Hide input container when email is sent */
+.chat-input-container.email-sent {
+    display: none !important;
+}
+
+.chat-input-container.email-sent .chat-input,
+.chat-input-container.email-sent .send-button {
+    display: none !important;
 }
