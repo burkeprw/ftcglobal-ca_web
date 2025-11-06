@@ -572,10 +572,11 @@ async sendViaResend(toEmail, htmlContent) {
         throw new Error(`Email failed: ${error.message}`);
     }
 }
-}
+
 
 extractSpecificDetail(userMessages) {
   if (!userMessages || userMessages.length === 0) return "I'm ready to help.";
   const lastMsg = userMessages[userMessages.length - 1];
   return `I noticed you are particularly focused on "${lastMsg.substring(0, 50)}...".`;
+}
 }
