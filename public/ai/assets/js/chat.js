@@ -349,19 +349,22 @@ async function sendMessage() {
         
         const data = await response.json();
 
-        // Check if email was sent and conversation ended
+        console.log('[CHAT] API Response:', data);
+        console.log('[CHAT] emailSent flag:', data.emailSent);
+
+        // Check if email was sent
         if (data.emailSent === true || data.conversationEnded === true) {
-            console.log('[CHAT] Email sent - ending conversation');
+            console.log('[CHAT] ⚠️ EMAIL SENT DETECTED - calling handleConversationEnd()');
             
-            // Display the final message
             addMessage(data.response, 'assistant');
             
-            // Hide input and show close button
             setTimeout(() => {
+                console.log('[CHAT] Executing handleConversationEnd');
                 handleConversationEnd();
             }, 500);
             
-            return; // Stop further processing
+            console.log('[CHAT] ✓ handleConversationEnd called');
+            return;
         }
         
         if (data.error) {
@@ -627,21 +630,22 @@ function handleConversationEnd() {
     // Hide the input container
     const inputContainer = document.querySelector('.chat-input-container');
     if (inputContainer) {
-        inputContainer.style.display = 'none';
+        inputContainer.style.display = 'none !important';  // FORCE with !important
         console.log('[CHAT] Input container hidden');
+    } else {
+        console.warn('[CHAT] Input container not found!');
     }
     
     // Show the conversation end container with close button
     const endContainer = document.querySelector('.conversation-end-container');
     if (endContainer) {
         endContainer.style.display = 'flex';
-        
-        // Scroll to show the button
         setTimeout(() => {
             endContainer.scrollIntoView({ behavior: 'smooth', block: 'end' });
         }, 300);
-        
         console.log('[CHAT] Close button shown');
+    } else {
+        console.warn('[CHAT] End container not found!');
     }
     
     // Disable further input
@@ -649,7 +653,10 @@ function handleConversationEnd() {
     if (chatInput) {
         chatInput.disabled = true;
     }
+    
+    // ⚠️ DO NOT show modal here - only show when button clicked
 }
+
 
 // ============================================
 // SHOW THANK YOU AND CLOSE WINDOW

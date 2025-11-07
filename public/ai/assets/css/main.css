@@ -152,6 +152,8 @@ body {
     word-break: break-word;
     animation: messageSlide 0.2s ease-out;
     line-height: 1.5;
+    font-size: 14px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
 }
 
 .user-message {
@@ -159,12 +161,18 @@ body {
     color: #ffffff;  /* Pure white for user messages */
     padding: 0.5rem 0;
     text-align: right;
+    font-size: 14px;  
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; 
+    line-height: 1.5;  
 }
 
 .ai-message {
     align-self: flex-start;
     color: #b0b0b0;
     padding: 0.5rem 0;
+    font-size: 14px;  
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    line-height: 1.5; 
 }
 
 /* Formatted content in AI messages */
@@ -938,4 +946,12 @@ body {
     .thank-you-modal h2 {
         font-size: 24px;
     }
+}
+
+
+/* FAILSAFE: Ensure input hides when email sent - maximum specificity */
+.chat-container .chat-input-container[style*="display: none"],
+.chat-input-container.email-sent,
+.chat-input-container.hidden {
+    display: none !important;
 }
