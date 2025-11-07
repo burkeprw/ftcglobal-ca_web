@@ -14,6 +14,10 @@ database_id = "6ec3b72b-4dc4-4d9a-9bc6-a5863a81a840"
 MAX_ROUNDS = "5"
 MAX_TOKENS_PER_MESSAGE = "500"
 
+[env.preview.vars]
+MAX_ROUNDS = "5"
+MAX_TOKENS_PER_MESSAGE = "500"
+
 [placement]
 mode = "smart"
 
