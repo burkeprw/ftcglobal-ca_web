@@ -860,3 +860,351 @@ function debugConversationEnd() {
         showThankYouAndClose();
     }, 3000);
 }
+
+
+
+
+// ============================================
+// CONSOLE DEBUG SCRIPT FOR ACTUAL CHAT INTERFACE
+// ============================================
+// Instructions:
+// 1. Open your ACTUAL chat interface (not the debug page)
+// 2. Open browser console (F12)
+// 3. Copy and paste this entire script into the console
+// 4. Run the test commands shown at the bottom
+// ============================================
+
+console.log('%c🔧 CHAT INTERFACE DEBUGGER LOADED', 'color: #0066cc; font-size: 16px; font-weight: bold');
+
+// 1. CHECK WHAT EXISTS IN YOUR ACTUAL INTERFACE
+window.debugCheckElements = function() {
+    console.log('%c=== CHECKING ELEMENTS ===', 'color: #00cc88; font-weight: bold');
+    
+    const elements = {
+        'Input Container (.chat-input-container)': document.querySelector('.chat-input-container'),
+        'Input Container (#chatInputContainer)': document.querySelector('#chatInputContainer'),
+        'Input Container (by textarea parent)': document.querySelector('textarea')?.closest('div'),
+        'Chat Input (textarea)': document.querySelector('.chat-input') || document.querySelector('textarea'),
+        'Send Button': document.querySelector('.send-button') || document.querySelector('button[onclick*="send"]'),
+        'Chat Messages': document.querySelector('.chat-messages') || document.querySelector('#chatMessages'),
+        'Chat Container': document.querySelector('.chat-container') || document.querySelector('#chatContainer'),
+        'End Container': document.querySelector('.conversation-end-container'),
+        'Thank You Modal': document.querySelector('.thank-you-modal')
+    };
+    
+    Object.entries(elements).forEach(([name, element]) => {
+        if (element) {
+            console.log(`✅ ${name}: FOUND`, element);
+            console.log(`   Classes: ${element.className}`);
+            console.log(`   Display: ${window.getComputedStyle(element).display}`);
+        } else {
+            console.log(`❌ ${name}: NOT FOUND`);
+        }
+    });
+    
+    return elements;
+};
+
+// 2. FIX TO HIDE INPUT CONTAINER (Works with any structure)
+window.debugHideInput = function() {
+    console.log('%c=== HIDING INPUT CONTAINER ===', 'color: #ff9500; font-weight: bold');
+    
+    // Method 1: Find by textarea and hide its parent container
+    const textarea = document.querySelector('textarea') || document.querySelector('.chat-input') || document.querySelector('[id*="chatInput"]');
+    if (textarea) {
+        const container = textarea.closest('div[class*="input-container"]') || 
+                         textarea.closest('div[class*="input"]') ||
+                         textarea.parentElement.parentElement ||
+                         textarea.parentElement;
+        
+        if (container) {
+            console.log('✅ Found input container via textarea parent:', container);
+            
+            // Nuclear hide
+            container.style.cssText = 'display: none !important; visibility: hidden !important; position: absolute !important; left: -9999px !important;';
+            container.classList.add('hidden', 'email-sent');
+            container.setAttribute('hidden', 'true');
+            
+            // Optional: Remove completely
+            // container.remove();
+            
+            return container;
+        }
+    }
+    
+    // Method 2: Find by class patterns
+    const patterns = ['input-container', 'input', 'chat-input', 'chatInput'];
+    for (let pattern of patterns) {
+        const elements = document.querySelectorAll(`[class*="${pattern}"]`);
+        elements.forEach(el => {
+            if (el.querySelector('textarea') || el.querySelector('input') || el.querySelector('button')) {
+                console.log(`✅ Hiding element matching pattern "${pattern}":`, el);
+                el.style.display = 'none';
+                el.style.visibility = 'hidden';
+            }
+        });
+    }
+    
+    // Method 3: Hide specific elements by position
+    const chatContainer = document.querySelector('.chat-container') || document.querySelector('#chatContainer');
+    if (chatContainer) {
+        const lastChild = chatContainer.lastElementChild;
+        if (lastChild && (lastChild.querySelector('textarea') || lastChild.querySelector('input'))) {
+            console.log('✅ Hiding last child of chat container:', lastChild);
+            lastChild.style.display = 'none';
+        }
+    }
+};
+
+// 3. CREATE AND SHOW END CONTAINER
+window.debugShowEndContainer = function() {
+    console.log('%c=== SHOWING END CONTAINER ===', 'color: #00cc88; font-weight: bold');
+    
+    // Check if exists
+    let endContainer = document.querySelector('.conversation-end-container');
+    
+    if (!endContainer) {
+        console.log('📦 Creating end container...');
+        
+        // Find where to insert it
+        const chatContainer = document.querySelector('.chat-container') || 
+                            document.querySelector('#chatContainer') ||
+                            document.querySelector('.chat-messages')?.parentElement ||
+                            document.body;
+        
+        endContainer = document.createElement('div');
+        endContainer.className = 'conversation-end-container';
+        endContainer.style.cssText = `
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            background: linear-gradient(135deg, #1a1f2e 0%, #232937 100%);
+            border-top: 2px solid #0066cc;
+            gap: 1.5rem;
+            text-align: center;
+            width: 100%;
+            box-sizing: border-box;
+        `;
+        
+        endContainer.innerHTML = `
+            <p style="color: #e0e0e0; font-size: 18px; line-height: 1.6; margin: 0;">
+                ✨ Thanks for chatting with eXIQ!<br>
+                Patrick will be in touch within 24 hours with personalized recommendations.
+            </p>
+            <button onclick="debugShowModal()" style="
+                background: linear-gradient(135deg, #0066cc 0%, #0052a3 100%);
+                color: white;
+                border: none;
+                padding: 1rem 2.5rem;
+                border-radius: 30px;
+                font-size: 16px;
+                font-weight: 600;
+                cursor: pointer;
+                box-shadow: 0 6px 20px rgba(0, 102, 204, 0.4);
+                transition: all 0.3s ease;
+                min-width: 220px;
+            " onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
+                Close eXIQ Agent
+            </button>
+        `;
+        
+        chatContainer.appendChild(endContainer);
+        console.log('✅ End container created and added to:', chatContainer);
+    } else {
+        // Just show it
+        endContainer.style.display = 'flex';
+        endContainer.style.visibility = 'visible';
+        console.log('✅ End container shown');
+    }
+    
+    // Scroll to it
+    endContainer.scrollIntoView({ behavior: 'smooth', block: 'end' });
+    
+    return endContainer;
+};
+
+// 4. SHOW THANK YOU MODAL
+window.debugShowModal = function() {
+    console.log('%c=== SHOWING THANK YOU MODAL ===', 'color: #0066cc; font-weight: bold');
+    
+    let modal = document.querySelector('.thank-you-modal');
+    
+    if (!modal) {
+        console.log('📦 Creating modal...');
+        
+        modal = document.createElement('div');
+        modal.className = 'thank-you-modal';
+        modal.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 999999;
+            animation: fadeIn 0.3s ease;
+        `;
+        
+        modal.innerHTML = `
+            <div style="
+                background: white;
+                padding: 3rem;
+                border-radius: 20px;
+                text-align: center;
+                max-width: 450px;
+                box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            ">
+                <h2 style="color: #0066cc; font-size: 32px; margin: 0 0 1rem 0;">
+                    Thank You! 🎉
+                </h2>
+                <p style="color: #333; font-size: 18px; margin: 0 0 2rem 0;">
+                    Your consultation summary has been sent.<br>
+                    We'll be in touch within 24 hours!
+                </p>
+                <div style="font-size: 14px; color: #666;">
+                    Redirecting in 3 seconds...
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(modal);
+    } else {
+        modal.style.display = 'flex';
+    }
+    
+    console.log('✅ Modal shown');
+    console.log('⏱️ Will close/redirect in 3 seconds...');
+    
+    // Auto close and redirect
+    setTimeout(() => {
+        modal.style.display = 'none';
+        console.log('🔄 Redirecting to ftcglobal.ca...');
+        // Uncomment to actually redirect:
+        // window.location.href = 'https://ftcglobal.ca';
+    }, 3000);
+    
+    return modal;
+};
+
+// 5. COMPLETE CONVERSATION END FLOW
+window.debugCompleteFlow = function() {
+    console.log('%c=== RUNNING COMPLETE CONVERSATION END FLOW ===', 'color: #ff00ff; font-weight: bold; font-size: 14px');
+    
+    // Step 1: Hide input
+    console.log('Step 1: Hiding input container...');
+    debugHideInput();
+    
+    // Step 2: Show end container
+    setTimeout(() => {
+        console.log('Step 2: Showing end container...');
+        debugShowEndContainer();
+    }, 500);
+    
+    // Step 3: Add system message
+    setTimeout(() => {
+        console.log('Step 3: Adding system message...');
+        const messages = document.querySelector('.chat-messages') || document.querySelector('#chatMessages');
+        if (messages) {
+            const msg = document.createElement('div');
+            msg.style.cssText = 'text-align: center; color: #8b7aa8; padding: 1rem; background: rgba(139, 122, 168, 0.1); border-radius: 8px; margin: 1rem;';
+            msg.textContent = '📧 Email sent! Our conversation has ended.';
+            messages.appendChild(msg);
+            messages.scrollTop = messages.scrollHeight;
+        }
+    }, 1000);
+    
+    console.log('✅ Flow initiated. Click "Close eXIQ Agent" button to test modal.');
+};
+
+// 6. INJECT FIXED FUNCTIONS INTO YOUR CHAT
+window.injectFixes = function() {
+    console.log('%c=== INJECTING FIXES INTO YOUR CHAT ===', 'color: #00cc88; font-weight: bold');
+    
+    // Override handleConversationEnd
+    window.handleConversationEnd = function() {
+        console.log('[CHAT] Fixed handleConversationEnd called');
+        debugHideInput();
+        debugShowEndContainer();
+    };
+    
+    // Override showThankYouAndClose
+    window.showThankYouAndClose = function() {
+        console.log('[CHAT] Fixed showThankYouAndClose called');
+        debugShowModal();
+    };
+    
+    // Override handleEmailSentSuccessfully
+    window.handleEmailSentSuccessfully = function() {
+        console.log('[CHAT] Fixed handleEmailSentSuccessfully called');
+        debugCompleteFlow();
+    };
+    
+    console.log('✅ Functions injected:');
+    console.log('  - handleConversationEnd()');
+    console.log('  - showThankYouAndClose()');
+    console.log('  - handleEmailSentSuccessfully()');
+};
+
+// 7. FIND YOUR ACTUAL INPUT CONTAINER
+window.debugFindInput = function() {
+    console.log('%c=== SEARCHING FOR INPUT CONTAINER ===', 'color: #ff9500; font-weight: bold');
+    
+    // Strategy 1: Find textarea and traverse up
+    const textarea = document.querySelector('textarea');
+    if (textarea) {
+        console.log('✅ Found textarea:', textarea);
+        console.log('Parent 1:', textarea.parentElement);
+        console.log('Parent 2:', textarea.parentElement?.parentElement);
+        console.log('Parent 3:', textarea.parentElement?.parentElement?.parentElement);
+        
+        // Find the actual container
+        let container = textarea.parentElement;
+        while (container && container !== document.body) {
+            if (container.querySelector('button') && container.querySelector('textarea')) {
+                console.log('🎯 Found input container with both textarea and button:', container);
+                return container;
+            }
+            container = container.parentElement;
+        }
+    }
+    
+    // Strategy 2: Find send button and traverse up
+    const button = Array.from(document.querySelectorAll('button')).find(btn => 
+        btn.textContent.includes('Send') || 
+        btn.onclick?.toString().includes('send') ||
+        btn.className.includes('send')
+    );
+    
+    if (button) {
+        console.log('✅ Found send button:', button);
+        const container = button.closest('div');
+        console.log('Button container:', container);
+        return container;
+    }
+    
+    console.log('❌ Could not find input container automatically');
+    console.log('💡 Try selecting it manually in Elements inspector and run:');
+    console.log('   $0.style.display = "none"');
+};
+
+// AUTO-RUN INITIAL CHECK
+console.log('\n');
+debugCheckElements();
+
+// USAGE INSTRUCTIONS
+console.log('\n%c📚 AVAILABLE COMMANDS:', 'color: #0066cc; font-size: 14px; font-weight: bold');
+console.log('%c1. debugCheckElements()', 'color: #333; font-family: monospace') + ' - Check what elements exist';
+console.log('%c2. debugFindInput()', 'color: #333; font-family: monospace') + ' - Find your input container');
+console.log('%c3. debugHideInput()', 'color: #333; font-family: monospace') + ' - Hide the input container');
+console.log('%c4. debugShowEndContainer()', 'color: #333; font-family: monospace') + ' - Show/create end container';
+console.log('%c5. debugShowModal()', 'color: #333; font-family: monospace') + ' - Show thank you modal';
+console.log('%c6. debugCompleteFlow()', 'color: #333; font-family: monospace') + ' - Run the complete end flow');
+console.log('%c7. injectFixes()', 'color: #333; font-family: monospace') + ' - Inject fixed functions into your chat');
+
+console.log('\n%c🚀 QUICK TEST:', 'color: #00cc88; font-size: 14px; font-weight: bold');
+console.log('Run: %cdebugCompleteFlow()', 'color: #333; font-family: monospace; background: #f0f0f0; padding: 2px 6px; border-radius: 3px');
