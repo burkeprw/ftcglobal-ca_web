@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>AI Consulting and Custom Agents</title>
     <link rel="stylesheet" href="assets/css/main.css">
-    <link rel="stylesheet" href="assets/css/end-styles.css">
 </head>
 
 <body>
@@ -40,12 +39,10 @@
         <!-- Conversation End Container - Initially hidden, shown after email sent -->
         <div class="conversation-end-container" id="conversationEndContainer" style="display: none;">
             <p class="end-message">
-                ✨ Thanks for chatting with eXIQ! 
-                <br>
-                Patrick will be in touch within 24 hours with personalized recommendations.
+                ✨ Thanks for chatting with eXIQ!
             </p>
             <button class="close-button" onclick="showThankYouAndClose()">
-                Close eXIQ Agent
+                Close Agent
             </button>
         </div>
     </div>
@@ -53,9 +50,7 @@
     <!-- Thank You Modal - Shown when close button is clicked -->
     <div class="thank-you-modal" id="thankYouModal">
         <div class="modal-content">
-            <h2>We'll be in touch soon!</h2>
-            <p>We'll be in touch soon!</p>
-            <div class="spinner"></div>
+            <p>We look forward to working with you!</p>
         </div>
     </div>
 
@@ -71,7 +66,6 @@
     <!-- Load scripts -->
     <script src="assets/js/chat.js"></script>
     <script src="assets/js/auto-expand-input.js"></script>
-    <script src="assets/js/conversation-end.js"></script>
     
     <!-- Debug helper (remove in production) -->
     <script>

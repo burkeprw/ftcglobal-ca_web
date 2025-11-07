@@ -314,8 +314,8 @@ export class MemoryAgent {
     return '';
   }
 
-  async recommendServices(challenges) {
-try {
+/*  async recommendServices(challenges) {
+    try {
       const cleanChallenges = challenges.replace(/[^\w\s]/gi, ' ').trim();
       const words = cleanChallenges.split(/\s+/);
       const searchTerm = words.slice(-3).join(' ').substring(0, 30);
@@ -338,7 +338,7 @@ try {
       console.error('Service recommendation error:', error);
       return []; // Return empty array on error so chat doesn't crash
     }
-  }
+  }*/
 
   async chat(userMessage) {
     await this.initialize();
@@ -373,18 +373,18 @@ try {
         
         // Return confirmation
         return {
-            response: `Perfect! I've captured your email (${email}) and sent a quick virtual introduction to a human you can speak with in more detail.`,
+            response: `Perfect! I've captured your email <${email}> and sent a quick virtual introduction to <strong>Patrick Burke</strong> who you can speak with in more detail.`,
             messageCount: this.conversation.message_count,
             emailCaptured: true,
             shouldEndConversation: true
         };
     }
-
+/*
     console.log('=== DEBUG API KEY ===');
     console.log('API Key exists:', !!this.env.CLAUDE_API_KEY);
     console.log('API Key starts with:', this.env.CLAUDE_API_KEY?.substring(0, 15) + '...');
     console.log('===================');
-
+*/
     // Check conversation limits
     const limits = await this.checkConversationLimits();
     if (limits.shouldEnd) {
@@ -422,6 +422,7 @@ try {
     ${recentMessages.map(m => `${m.role}: ${m.content}`).join('\n')}
 
     Guidelines:
+    - DO NOT offer to send detailed breakdowns or roadmaps as a solution. Instead, indicate that you will put the user in touch with Patrick Burke who can help further
     - Keep responses concise (under ${this.MAX_TOKENS_PER_MESSAGE} tokens)
     - Focus on securing user NAME and EMAIL after engaging briefly on a business challenge
     - Build rapport with user through understanding their business challenges
@@ -467,13 +468,13 @@ try {
       // Save updated memory
       await this.saveMemory();
       
-      // Check if we should recommend services
+      /* Check if we should recommend services
       let recommendations = [];
       if (this.conversation.identified_challenges.length > 0) {
         recommendations = await this.recommendServices(
           this.conversation.identified_challenges.join(' ')
         );
-      }
+      }*/
       
       const emailWasSent = await this.checkIfEmailSent();
 
@@ -490,25 +491,20 @@ try {
       throw new Error(`AI processing error: ${error.message}`);
     }
   }
-
  
-async sendPersonalizedEmail(email, userName) {
-    try {
-        console.log('[EMAIL DEBUG] Starting sendPersonalizedEmail to:', email);
-        
-        // 1. robust 'displayName' resolution
-        // Fix typo: use 'user_name' (matches memory structure), not 'username'
-        let displayName = userName || this.memory?.core_memory?.user_name;
+async sendPersonalizedEmail(email, messages, challenges, anthropic, resendApiKey) {
+    console.log('[EMAIL] Starting personalized email process...');
+    let displayName = null;
+    
+    // Try to extract from conversation
+    displayName = extractUserName(messages);
+    
+    // If no name found, try email address
+    if (!displayName) {
+        displayName = extractNameFromEmail(email);
+    }
 
-        // 2. Clean up if it captured weird data like "Unknown" or just whitespace
-        if (!displayName || 
-            displayName.trim().toLowerCase() === 'unknown' || 
-            displayName.trim().toLowerCase() === 'there') {
-            displayName = 'there';
-        }
-      
-
-        // Get conversation details
+       /* // Get conversation details
         const conversation = await this.env.DB.prepare(`
             SELECT full_transcript, identified_challenges 
             FROM conversations WHERE id = ?
@@ -521,35 +517,93 @@ async sendPersonalizedEmail(email, userName) {
         const userMessages = transcript.filter(m => m.role === 'user').map(m => m.content);
         let mainChallenge = challenges[0] || 'business optimization';
         mainChallenge = mainChallenge.replace(/^['"[\[]+|['"\]]+$/g, '').trim();
+        */
+   
+// Format the greeting
+    const greeting = displayName ? `Hi ${displayName},` : 'Hi there,';
+    console.log('[EMAIL] Using greeting:', greeting);
+    
+    // Format conversation for email
+    const conversationSummary = messages
+        .filter(m => m.role === 'user' || m.content?.length > 20)
+        .slice(-5) // Last 5 meaningful messages
+        .map(m => {
+            const role = m.role === 'user' ? 'You' : 'eXIQ';
+            const content = (m.content || m.text || '').substring(0, 200);
+            return `${role}: ${content}${content.length >= 200 ? '...' : ''}`;
+        })
+        .join('\n\n');
+    
+    try {
+        // Send email with extracted name
+        const response = await fetch('https://api.resend.com/emails', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${this.env.RESEND_API_KEY}`,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                from: `eXIQ <${this.env.EMAIL_FROM}>`,
+                to: [toEmail],
+                cc: [this.env.EMAIL_REPLY_TO],
+                reply_to: this.env.EMAIL_REPLY_TO,
+                subject: 'AI Consulting Follow-up: Patrick Burke Virtual Introduction',
+                html: `
+                    <h2>${greeting}</h2>
+                    
+                    <p>Thank you for chatting with eXIQ about your business challenges.</p>
+                    
+                    <h3>Our Conversation:</h3>
+                    <p>We discussed your main business challenge: ${mainChallenge}. 
+                    
+                    ${challenges.length > 0 ? `
+                        <h3>Key Challenges Identified:</h3>
+                        <ul>
+                            ${challenges.map(c => `<li>${c}</li>`).join('')}
+                        </ul>
+                    ` : ''}
+                    
+                    <p>While I am not optimized to provide recommendations, I'm writing to put you in touch with <strong>Patrick Burke</strong> (cc'd), who will review this conversation and reach out with personalized advice specific to your business needs.</p>
+
+                    <p>I think the two of you will do great things together. Feel free to reach out to him directly at 778-288-3420.</p>
+
+                    <p>Compiled with care,<br>
+                    eXIQ<br>
+                    <a href="https://ftcglobal.ca/">FTCG Consulting</a></p>
+                `
+            })
+        });
         
-        // Generate email body with improved tone
+        if (response.ok) {
+            console.log('[EMAIL] Successfully sent to:', email, 'with name:', displayName || 'none');
+            return true;
+        }
+    } catch (error) {
+        console.error('[EMAIL] Failed to send:', error);
+    }
+    
+    return false;
+}
+        
+ /*       // Generate email body with improved tone
         const emailBody = `
             <p>Hi ${displayName},</p>
             
-            <p>This is eXIQ, the Agent you were recently chatting with. You indicated an interest in 
-            ${mainChallenge}. While I am not optimized to provide further advice, 
-            I'd love to put you in touch with <strong>Patrick Burke</strong> (cc'd), who can work with you to develop novel 
-            AI solutions customized to your specific business needs.</p>
-            
-            <p>Please send Patrick a few time slots that may work for a phone call. Or reach out to him directly at 778-288-3420.</p>
+            <p>Thank you for chatting with eXIQ about your business challenges.<p>
+            <p>We discussed your main business challenge: ${mainChallenge}. 
+            <p>While I am not optimized to provide recommendations, I'm writing to put you in touch with <strong>Patrick Burke</strong> (cc'd), who will review this conversation and reach out with personalized advice specific to your business needs.</p>
 
-            <p>I think the two of you will do great things together.</p>
+            <p>I think the two of you will do great things together. eel free to reach out to him directly at 778-288-3420.</p>
 
             <p>Warmly automated,<br>
             eXIQ<br>
             <a href="https://ftcglobal.ca/">FTCG Consulting</a></p>
         `;
+
+        //await this.sendViaResend(email, emailBody);
+
+       /* console.log('[EMAIL DEBUG] Email sent successfully');
         
-        console.log('[EMAIL DEBUG] About to call sendViaMailChannels');
-
-        // Send via Resend
-        await this.sendViaResend(email, emailBody);
-
-        console.log('[EMAIL DEBUG] Email sent successfully');
-        
-
-
-
         // Log to database
         await this.env.DB.prepare(`
             UPDATE conversations 
@@ -561,9 +615,7 @@ async sendPersonalizedEmail(email, userName) {
         
     } catch (error) {
         console.error('[EMAIL DEBUG] CRITICAL ERROR in sendPersonalizedEmail:', error);
-        throw error; // Re-throw so caller knows it failed
-    }
-}
+        throw error; // Re-throw so caller knows it failed*/
 
 async checkIfEmailSent() {
     try {
@@ -578,6 +630,7 @@ async checkIfEmailSent() {
     }
 }
 
+/*
 async sendViaResend(toEmail, htmlContent) {
     console.log('[EMAIL DEBUG] Preparing Resend for', toEmail);
     console.log('[EMAIL DEBUG] Config - FROM:', this.env.EMAIL_FROM);
@@ -616,9 +669,9 @@ async sendViaResend(toEmail, htmlContent) {
         console.error('[EMAIL DEBUG] Full error:', error);
         throw new Error(`Email failed: ${error.message}`);
     }
-}
+}*/
 
-_getSafeUserName(userName) {
+/*_getSafeUserName(userName) {
     // 1. Prefer explicitly passed name if valid
     if (userName && userName.trim() && userName.toLowerCase() !== 'there') {
         return userName.trim();
@@ -632,5 +685,71 @@ _getSafeUserName(userName) {
     
     // 3. Final fallback
     return 'there';
+}*/
+
+async extractUserName(messages) {
+    // Common patterns to find names in conversation
+    const namePatterns = [
+        /(?:my name is|i'm|i am|this is|call me)\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)?)/i,
+        /^([A-Z][a-z]+(?:\s+[A-Z][a-z]+)?)\s+here/i,
+        /(?:regards|sincerely|best|thanks),?\s*([A-Z][a-z]+(?:\s+[A-Z][a-z]+)?)/i,
+        /^([A-Z][a-z]+(?:\s+[A-Z][a-z]+)?)[,\s]/  // Name at start of message
+    ];
+    
+    // Check user messages for name mentions
+    for (const msg of messages) {
+        if (msg.role === 'user' || msg.type === 'user') {
+            const content = msg.content || msg.text || '';
+            
+            for (const pattern of namePatterns) {
+                const match = content.match(pattern);
+                if (match && match[1]) {
+                    const name = match[1].trim();
+                    // Validate it looks like a name
+                    if (name.length > 1 && name.length < 50 && !name.includes('@')) {
+                        console.log('[EMAIL] Found name:', name);
+                        return name;
+                    }
+                }
+            }
+        }
+    }
+    
+    return null; // No name found
 }
+
+
+async extractNameFromEmail(email) {
+    // Extract potential name from email address
+    // paddraig.bourke@gmail.com -> Paddraig Bourke
+    
+    if (!email) return null;
+    
+    const localPart = email.split('@')[0];
+    
+    // Handle common email formats
+    const cleaned = localPart
+        .replace(/[\d]+/g, '') // Remove numbers
+        .replace(/[._-]/g, ' ') // Replace separators with spaces
+        .trim();
+    
+    if (!cleaned || cleaned.length < 2) return null;
+    
+    // Capitalize each word
+    const name = cleaned
+        .split(' ')
+        .filter(part => part.length > 0)
+        .map(part => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
+        .join(' ');
+    
+    // Basic validation
+    if (name.length > 1 && name.length < 50) {
+        console.log('[EMAIL] Extracted name from email:', name);
+        return name;
+    }
+    
+    return null;
+}
+
+
 }

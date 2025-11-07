@@ -1,6 +1,23 @@
 // src/handlers/email.js
 // Handle email sending with conversation summaries
 
+
+import { summarizeMainChallenge, extractUserName, extractNameFromEmail } from './ai-summarizer.js';
+
+export async function handleEmail(request, env, ctx) {
+    // ... existing code ...
+    
+    // When email is captured, enhance the process:
+    const displayName = extractUserName(messages) || 
+                       extractNameFromEmail(email);
+    
+    const mainChallenge = await summarizeMainChallenge(messages, env.ANTHROPIC_API_KEY);
+    
+    // Send enhanced email
+    await sendEnhancedEmail(email, displayName, mainChallenge, messages, env);
+}
+
+/*
 import { getVisitorId, updateVisitorInfo } from '../lib/visitor.js';
 
 export async function handleEmail(request, env) {
@@ -162,8 +179,7 @@ function extractKeyTopics(text) {
     .slice(0, 5)
     .map(([word]) => word);
 }
-
-async function sendEmails(env, data) {
+/*async function sendEmails(env, data) {
   const emailsSent = [];
   
   // Email content for visitor
@@ -262,7 +278,7 @@ async function sendEmails(env, data) {
   return emailsSent;
 }
 
-async function sendEmailViaMailChannels(env, { to, subject, html }) {
+/*async function sendEmailViaMailChannels(env, { to, subject, html }) {
   // Using MailChannels API (works with Cloudflare Workers)
   const response = await fetch('https://api.mailchannels.net/tx/v1/send', {
     method: 'POST',
@@ -292,4 +308,5 @@ async function sendEmailViaMailChannels(env, { to, subject, html }) {
   if (!response.ok) {
     throw new Error(`Email send failed: ${response.status}`);
   }
-}
+}*/
+

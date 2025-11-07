@@ -6,6 +6,7 @@ import { handleIdentify } from '../../../src/handlers/identify.js';
 import { handleMemory } from '../../../src/handlers/memory.js';
 import { handleEmail } from '../../../src/handlers/email.js';
 import { handleServices } from '../../../src/handlers/services.js';
+import { summarizeMainChallenge } from '../../../src/handlers/ai-summarizer.js';
 
 export async function onRequest(context) {
   const { request, env, params } = context;
@@ -18,6 +19,11 @@ export async function onRequest(context) {
     'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type',
   };
+
+  // Ensure env has required keys
+  if (!env.CLAUDE_API_KEY) {
+      console.error('Missing CLAUDE_API_KEY');
+  }
 
   // Handle preflight requests
   if (request.method === 'OPTIONS') {

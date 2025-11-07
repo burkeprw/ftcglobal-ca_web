@@ -52,8 +52,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     handleIOSKeyboard();
 });
 
-// iOS keyboard handling 
-// Supports visualViewport API + fallbacks for older iOS
+// iOS keyboard handling. Supports visualViewport API + fallbacks for older iOS
 function handleIOSKeyboard() {
     // Detect iOS
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
@@ -235,7 +234,7 @@ async function identifyVisitor() {
     }
 }
 
-let typingTimeout;
+// let typingTimeout;
 /*
 function showTypingIndicator() {
     const indicator = document.getElementById('typingIndicator');
@@ -257,7 +256,6 @@ function hideTypingIndicator() {
 */
 
 // Start chat function (called from index.html)
-// Start chat function (called from index.html) - REPLACE lines 165-182
 function startChat() {
     const landingPage = document.getElementById('landingPage');
     const chatContainer = document.getElementById('chatContainer');
@@ -280,7 +278,7 @@ function startChat() {
     
     // Send initial greeting
     const greeting = window.returningVisitorMessage || 
-        "Hey, I'm <strong>eXIQ</strong>, an Agent who can help you enhance your business. What challenges are you currently facing?";
+        "Hey, I'm <strong>eXIQ</strong>, an Agent who can help you enhance your business. What challenges is your business currently facing?";
     
     addMessage(greeting, 'ai');
     
@@ -314,26 +312,15 @@ async function sendMessage() {
         
         const data = await response.json();
 
-        console.log('[CHAT] API Response:', data);
-        console.log('[CHAT] emailSent flag:', data.emailSent);
+       // console.log('[CHAT] API Response:', data);
+       // console.log('[CHAT] emailSent flag:', data.emailSent);
+       // console.log('[CHAT] shouldEndConversation flag:', data.shouldEndConversation);
 
         // Check if email was sent
-        if (data.emailSent === true || data.conversationEnded === true) {
-            console.log('[CHAT] Email sent detected');
-            addMessage(data.response, 'assistant');
+        if (data.emailSent === true || data.shouldEndConversation === true || data.conversationEnded === true) {
+          //  addMessage(data.response, 'assistant');
             
-            // Use the enhanced handler
-            handleEmailSentSuccessfully();
-            
-            // Fallback: ensure it really happens
-            setTimeout(() => {
-                const input = document.querySelector('.chat-input-container');
-                if (input && input.style.display !== 'none') {
-                    console.warn('[CHAT] Fallback: Force hiding input');
-                    input.remove(); // Nuclear option
-                    handleConversationEnd();
-                }
-            }, 500);
+            handleEmailSentSuccessfully();         
         }
         
         if (data.error) {
@@ -342,7 +329,6 @@ async function sendMessage() {
             addMessage(data.response, 'ai');
             messageCount = data.messageCount || 0;
             
-            // Update message count display - MOVED HERE
             const countDisplay = document.getElementById('messageCount');
             if (countDisplay) countDisplay.textContent = messageCount;
             
@@ -353,10 +339,10 @@ async function sendMessage() {
                 if (visitorDisplay) visitorDisplay.textContent = visitorId;
             }
             
-            // Show recommendations if any
+           /* // Show recommendations if any
             if (data.recommendations && data.recommendations.length > 0) {
                 showRecommendations(data.recommendations);
-            }
+            }*/
             
             // Check if conversation should end
             if (data.shouldEndConversation) {
@@ -417,10 +403,8 @@ function addMessage(content, type) {
             // Remove any stray brackets or formatting artifacts
             .replace(/\s*\]\s*/g, ' ');
 
-        
         messageDiv.innerHTML = formattedContent;
     } else {
-        // User messages remain plain text
         messageDiv.textContent = content;
     }
 
@@ -429,7 +413,7 @@ function addMessage(content, type) {
 }
 
 // Show service recommendations
-function showRecommendations(recommendations) {
+/*function showRecommendations(recommendations) {
     const messagesContainer = document.getElementById('chatMessages');
     const recDiv = document.createElement('div');
     recDiv.className = 'recommendations';
@@ -438,7 +422,7 @@ function showRecommendations(recommendations) {
         '</ul>';
     messagesContainer.appendChild(recDiv);
     messagesContainer.scrollTop = messagesContainer.scrollHeight;
-}
+}*/
 
 // Prompt for email
 /*function promptForEmail() {
@@ -499,7 +483,6 @@ function handleKeyPress(event) {
     }
 }
 
-
 // Typing indicator functions
 function showTypingIndicator() {
     const indicator = document.getElementById('typingIndicator');
@@ -512,7 +495,6 @@ function hideTypingIndicator() {
     const indicator = document.getElementById('typingIndicator');
     if (indicator) indicator.style.display = 'none';
 }
-
 
 // Memory panel functions
 async function toggleMemory() {
@@ -576,7 +558,7 @@ async function resetMemory() {
         });
         
         if (response.ok) {
-            addMessage('Memory has been reset. Let\'s start fresh!', 'ai');
+            addMessage('Memory has been reset. Let\'s start fresh! \n\nI\'m <strong>eXIQ</strong>, an Agent who can help you enhance your business. What challenges is your business currently facing?', 'ai');
             messageCount = 0;
             
             // Update memory display if open
@@ -590,29 +572,47 @@ async function resetMemory() {
     }
 }
 
+// Enhanced email sent handler that ensures conversation ends
+function handleEmailSentSuccessfully() {
+    console.log('[CHAT] Email sent successfully - triggering full conversation end');
+    
+    // Call the main conversation end handler
+    handleConversationEnd();
+    
+    // Additional cleanup specific to email sent
+    const inputContainer = document.querySelector('.chat-input-container');
+    if (inputContainer) {
+        // Nuclear option: remove from DOM entirely after a delay
+        setTimeout(() => {
+            inputContainer.remove();
+            console.log('[CHAT] Input container removed from DOM');
+        }, 500);
+    }
+}
+
 // Main function to handle conversation end after email is sent
 function handleConversationEnd() {
-    console.log('[CHAT] Starting conversation end sequence...');
+   // console.log('[CHAT] Starting conversation end sequence...');
     
     // Method 1: Hide input container using multiple approaches for reliability
     const inputContainer = document.querySelector('.chat-input-container');
     if (inputContainer) {
         // Use setAttribute for highest specificity
-        inputContainer.setAttribute('style', 'display: none !important; visibility: hidden !important; opacity: 0 !important; height: 0 !important; overflow: hidden !important;');
+     //   inputContainer.setAttribute('style', 'display: none !important; visibility: hidden !important; opacity: 0 !important; height: 0 !important; overflow: hidden !important;');
         
         // Also add multiple classes for CSS fallback
-        inputContainer.classList.add('email-sent', 'hidden', 'conversation-ended');
+      //  inputContainer.classList.add('email-sent', 'hidden', 'conversation-ended');
         
         // Remove from DOM flow completely
         inputContainer.style.position = 'absolute';
         inputContainer.style.left = '-9999px';
         
-        console.log('[CHAT] Input container hidden with multiple methods');
+        console.log('[CHAT] Input container hidden with DOM methods');
     } else {
         console.error('[CHAT] CRITICAL: Input container not found!');
     }
     
-    // Method 2: Create and inject the end container if it doesn't exist
+   // Method 2: Create and inject the end container if it doesn't exist
     let endContainer = document.querySelector('.conversation-end-container');
     
     if (!endContainer) {
@@ -622,11 +622,8 @@ function handleConversationEnd() {
         endContainer = document.createElement('div');
         endContainer.className = 'conversation-end-container';
         endContainer.innerHTML = `
-            <p class="end-message">
-                Thanks for chatting with eXIQ! Patrick will be in touch soon.
-            </p>
             <button class="close-button" onclick="showThankYouAndClose()">
-                Close eXIQ Agent
+                Close Agent
             </button>
         `;
         
@@ -652,7 +649,7 @@ function handleConversationEnd() {
     endContainer.style.removeProperty('display');
     endContainer.style.display = 'flex'; // Re-apply flex
     
-    // Method 3: Disable all inputs as backup
+ /*  // Method 3: Disable all inputs as backup
     const chatInput = document.querySelector('.chat-input');
     const sendButton = document.querySelector('.send-button');
     
@@ -685,10 +682,10 @@ function handleConversationEnd() {
             }
         }
         console.log('[CHAT] Scrolled to end container');
-    }, 100);
+    }, 100); */
     
     // Method 5: Add a final message to chat
-    addSystemMessage("📧 Email sent! Our conversation has ended. Patrick from FTC Global will be in touch soon.");
+    // addSystemMessage("📧 Email sent! Our conversation has ended. Patrick from FTC Global will be in touch soon.");
     
     // Log final state for debugging
     console.log('[CHAT] Conversation end sequence complete');
@@ -699,7 +696,7 @@ function handleConversationEnd() {
     window.conversationEnded = true;
 }
 
-// Helper function to add system messages
+/*// Helper function to add system messages
 function addSystemMessage(text) {
     const messagesContainer = document.getElementById('chatMessages') || document.querySelector('.chat-messages');
     if (messagesContainer) {
@@ -710,25 +707,7 @@ function addSystemMessage(text) {
         messagesContainer.appendChild(systemMsg);
         messagesContainer.scrollTop = messagesContainer.scrollHeight;
     }
-}
-
-// Enhanced email sent handler that ensures conversation ends
-function handleEmailSentSuccessfully() {
-    console.log('[CHAT] Email sent successfully - triggering full conversation end');
-    
-    // Call the main conversation end handler
-    handleConversationEnd();
-    
-    // Additional cleanup specific to email sent
-    const inputContainer = document.querySelector('.chat-input-container');
-    if (inputContainer) {
-        // Nuclear option: remove from DOM entirely after a delay
-        setTimeout(() => {
-            inputContainer.remove();
-            console.log('[CHAT] Input container removed from DOM');
-        }, 500);
-    }
-}
+}*/
 
 // Show thank you modal and close/redirect
 function showThankYouAndClose() {
@@ -745,9 +724,7 @@ function showThankYouAndClose() {
         modal.className = 'thank-you-modal';
         modal.innerHTML = `
             <div class="modal-content">
-                <h2>Thank You!</h2>
-                <p>Your consultation summary has been sent. We'll be in touch soon!</p>
-                <div class="spinner"></div>
+                <p>We'll be in touch soon!</p>
             </div>
         `;
         document.body.appendChild(modal);
