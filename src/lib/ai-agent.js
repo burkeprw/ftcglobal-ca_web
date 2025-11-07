@@ -572,7 +572,7 @@ async sendPersonalizedEmail(email, messages, challenges) {
                 html: `
                     <p>${greeting}</p>
                     
-                    <p>Thank you for chatting with eXIQ about your business challenges.</p>
+                    <p>Thank you for chatting with eXIQ today.</p>
                     
                     ${challenges && challenges.length > 0 ? `
                         <p>We discussed the following challenges you are facing:</p>
