@@ -351,31 +351,44 @@ export class MemoryAgent {
         const email = emailMatch[0];
         const userName = this.memory.core_memory.user_name || 'there';
         
-        // Save email to visitor
-        await this.env.DB.prepare(`
-            UPDATE visitors 
-            SET email = ?, updated_at = CURRENT_TIMESTAMP
-            WHERE id = ?
-        `).bind(email, this.visitorId).run();
-        
         // Update memory
         this.memory.core_memory.email = email;
         await this.saveMemory();
         
         // Send email
+        let emailSentSuccessfully = false;
         try {
-             await this.sendPersonalizedEmail(email, userName);
+            // Get conversation data
+            const messages = this.conversation.full_transcript || [];
+            const challenges = this.conversation.identified_challenges || [];
+            
+            emailSentSuccessfully = await this.sendPersonalizedEmail(
+                email, 
+                messages, 
+                challenges
+            );
+            
+            if (emailSentSuccessfully) {
+                // Update database
+                await this.env.DB.prepare(`
+                    UPDATE conversations 
+                    SET email_sent = TRUE, email_sent_at = CURRENT_TIMESTAMP 
+                    WHERE id = ?
+                `).bind(this.conversation.id).run();
+                
+                console.log('[EMAIL] Successfully sent and logged to database');
+            } else {
+                console.error('[EMAIL] Failed to send email');
+            }
         } catch (error) {
-             console.error("Failed to send email despite valid capture:", error);
-             // Optional: decide if you want to tell the user it failed, 
-             // or just log it internally and still show success message to user.
+            console.error("[EMAIL] Error during email send:", error);
         }
         
         // Return confirmation
         return {
             response: `Perfect! I've captured your email <${email}> and sent a quick virtual introduction to <strong>Patrick Burke</strong> who you can speak with in more detail.`,
             messageCount: this.conversation.message_count,
-            emailCaptured: true,
+            emailSent: true,
             shouldEndConversation: true
         };
     }
@@ -423,6 +436,7 @@ export class MemoryAgent {
 
     Guidelines:
     - DO NOT offer to send detailed breakdowns or roadmaps as a solution. Instead, indicate that you will put the user in touch with Patrick Burke who can help further
+    - DO NOT make up information, particularly about what Patrick has done in the past. Stick to the facts.
     - Keep responses concise (under ${this.MAX_TOKENS_PER_MESSAGE} tokens)
     - Focus on securing user NAME and EMAIL after engaging briefly on a business challenge
     - Build rapport with user through understanding their business challenges
@@ -492,7 +506,7 @@ export class MemoryAgent {
     }
   }
  
-async sendPersonalizedEmail(email, messages, challenges, anthropic, resendApiKey) {
+async sendPersonalizedEmail(email, messages, challenges) {
     console.log('[EMAIL] Starting personalized email process...');
     let displayName = null;
     
@@ -544,7 +558,7 @@ async sendPersonalizedEmail(email, messages, challenges, anthropic, resendApiKey
             },
             body: JSON.stringify({
                 from: `eXIQ <${this.env.EMAIL_FROM}>`,
-                to: [toEmail],
+                to: [email],
                 cc: [this.env.EMAIL_REPLY_TO],
                 reply_to: this.env.EMAIL_REPLY_TO,
                 subject: 'AI Consulting Follow-up: Patrick Burke Virtual Introduction',
@@ -553,15 +567,12 @@ async sendPersonalizedEmail(email, messages, challenges, anthropic, resendApiKey
                     
                     <p>Thank you for chatting with eXIQ about your business challenges.</p>
                     
-                    <h3>Our Conversation:</h3>
-                    <p>We discussed your main business challenge: ${mainChallenge}. 
-                    
-                    ${challenges.length > 0 ? `
-                        <h3>Key Challenges Identified:</h3>
+                    ${challenges && challenges.length > 0 ? `
+                        <p>We discussed the following business challenges:</p>
                         <ul>
                             ${challenges.map(c => `<li>${c}</li>`).join('')}
                         </ul>
-                    ` : ''}
+                    ` : }
                     
                     <p>While I am not optimized to provide recommendations, I'm writing to put you in touch with <strong>Patrick Burke</strong> (cc'd), who will review this conversation and reach out with personalized advice specific to your business needs.</p>
 
@@ -574,10 +585,23 @@ async sendPersonalizedEmail(email, messages, challenges, anthropic, resendApiKey
             })
         });
         
-        if (response.ok) {
-            console.log('[EMAIL] Successfully sent to:', email, 'with name:', displayName || 'none');
-            return true;
-        }
+        // Log to database
+        await this.env.DB.prepare(`
+            UPDATE conversations 
+            SET email_sent = TRUE, email_sent_at = CURRENT_TIMESTAMP 
+            WHERE id = ?
+        `).bind(this.conversation.id).run();
+
+          if (response.ok) {
+              const responseData = await response.json();
+              console.log('[EMAIL] Successfully sent to:', email, 'with name:', displayName || 'none');
+              console.log('[EMAIL] Resend response:', responseData);
+              return true;
+          } else {
+              const errorData = await response.text();
+              console.error('[EMAIL] Resend API error:', response.status, errorData);
+              return false;
+          }
     } catch (error) {
         console.error('[EMAIL] Failed to send:', error);
     }
@@ -603,15 +627,6 @@ async sendPersonalizedEmail(email, messages, challenges, anthropic, resendApiKey
         //await this.sendViaResend(email, emailBody);
 
        /* console.log('[EMAIL DEBUG] Email sent successfully');
-        
-        // Log to database
-        await this.env.DB.prepare(`
-            UPDATE conversations 
-            SET email_sent = TRUE, email_sent_at = CURRENT_TIMESTAMP 
-            WHERE id = ?
-        `).bind(this.conversation.id).run();
-        
-        console.log('[EMAIL DEBUG] Email sent successfully to:', email);
         
     } catch (error) {
         console.error('[EMAIL DEBUG] CRITICAL ERROR in sendPersonalizedEmail:', error);
