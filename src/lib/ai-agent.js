@@ -470,7 +470,14 @@ export class MemoryAgent {
         // Extract any identified challenges
         const challengeEdit = edits.find(e => e.key.includes('identified_challenges'));
         if (challengeEdit) {
-          this.conversation.identified_challenges.push(challengeEdit.value);
+          // Strip brackets if present (matching applyMemoryEdits logic)
+          let challengeValue = challengeEdit.value;
+          if (challengeValue.startsWith('[') && challengeValue.endsWith(']')) {
+            challengeValue = challengeValue.slice(1, -1);
+          }
+          if (challengeValue) {  // Only add non-empty challenges
+            this.conversation.identified_challenges.push(challengeValue);
+          }
         }
       }
     
@@ -563,17 +570,21 @@ async sendPersonalizedEmail(email, messages, challenges) {
                 reply_to: this.env.EMAIL_REPLY_TO,
                 subject: 'AI Consulting Follow-up: Patrick Burke Virtual Introduction',
                 html: `
-                    <h2>${greeting}</h2>
+                    <p>${greeting}</p>
                     
                     <p>Thank you for chatting with eXIQ about your business challenges.</p>
                     
                     ${challenges && challenges.length > 0 ? `
-                        <p>We discussed the following business challenges:</p>
+                        <p>We discussed the following challenges you are facing:</p>
                         <ul>
-                            ${challenges.map(c => `<li>${c}</li>`).join('')}
+                            ${challenges.map(c => {
+                                const cleaned = c.replace(/^['"[\]]+|['"\]]+$/g, '').trim();
+                                    return `<li>${cleaned}</li>`;
+                                }).join('')}
                         </ul>
-                    ` : '<p>While I am not optimized to provide recommendations, I\'m writing to put you in touch with <strong>Patrick Burke</strong> (cc\'d), who will review this conversation and reach out with personalized advice specific to your business needs.</p>' }
+                    ` : '<p>We had a great discussion.</p>' }
 
+                    <p> While I am not optimized to provide recommendations, I\'m writing to put you in touch with <strong>Patrick Burke</strong> (cc\'d), who will review this conversation and reach out with personalized advice specific to your business needs.</p>
                     <p>I think the two of you will do great things together. Feel free to reach out to him directly at 778-288-3420.</p>
 
                     <p>Compiled with care,<br>
