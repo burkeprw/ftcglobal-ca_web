@@ -5,7 +5,7 @@ compatibility_date = "2025-10-29"
 [observability]
 enabled = true
 
-[d1_databases]
+[[d1_databases]]
 binding = "DB"
 database_name = "webAgnt-db"
 database_id = "6ec3b72b-4dc4-4d9a-9bc6-a5863a81a840"
@@ -17,7 +17,8 @@ MAX_TOKENS_PER_MESSAGE = "500"
 [placement]
 mode = "smart"
 
-[env.preview.d1_databases]
-binding = "DB"
-database_name = "webAgnt-db-staging"
-database_id = "fefdb825-4117-44f2-aef4-39b4de7212c4"
+[env.preview]
+  [[env.preview.d1_databases]]
+  binding = "DB"
+  database_name = "webAgnt-db-staging"
+  database_id = "fefdb825-4117-44f2-aef4-39b4de7212c4"
