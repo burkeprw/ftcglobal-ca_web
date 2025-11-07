@@ -386,7 +386,7 @@ export class MemoryAgent {
         
         // Return confirmation
         return {
-            response: `Perfect! I've captured your email <${email}> and sent a quick virtual introduction to <strong>Patrick Burke</strong> who you can speak with in more detail.`,
+            response: `Perfect! I've captured your email &lt;${email}&gt; and sent a quick virtual introduction to <strong>Patrick Burke</strong> who you can speak with in more detail. \nYou can reach Patrick at &lt;pburke@ftc-global.io&gt;.`,
             messageCount: this.conversation.message_count,
             emailSent: true,
             shouldEndConversation: true
