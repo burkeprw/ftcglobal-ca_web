@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>AI Consulting and Custom Agents</title>
     <link rel="stylesheet" href="assets/css/main.css">
+    <link rel="stylesheet" href="assets/css/conversation-end-styles.css">
 </head>
 
 <body>
@@ -23,7 +24,8 @@
         
         <div class="typing-indicator" id="typingIndicator"></div>
         
-        <div class="chat-input-container">
+        <!-- Input Container - Will be hidden when email is sent -->
+        <div class="chat-input-container" id="chatInputContainer">
             <textarea
                 class="chat-input" 
                 id="chatInput" 
@@ -35,10 +37,12 @@
             <button class="send-button" id="sendButton" onclick="sendMessage()" disabled></button>
         </div>
 
-        <!-- Conversation End Container (hidden by default) -->
-        <div class="conversation-end-container" style="display: none;">
+        <!-- Conversation End Container - Initially hidden, shown after email sent -->
+        <div class="conversation-end-container" id="conversationEndContainer" style="display: none;">
             <p class="end-message">
-                Thanks for chatting with eXIQ! Patrick will be in touch soon.
+                ✨ Thanks for chatting with eXIQ! 
+                <br>
+                Patrick will be in touch within 24 hours with personalized recommendations.
             </p>
             <button class="close-button" onclick="showThankYouAndClose()">
                 Close eXIQ Agent
@@ -46,9 +50,18 @@
         </div>
     </div>
 
-    <!-- Memory Panel -->
+    <!-- Thank You Modal - Shown when close button is clicked -->
+    <div class="thank-you-modal" id="thankYouModal">
+        <div class="modal-content">
+            <h2>We'll be in touch soon!</h2>
+            <p>We'll be in touch soon!</p>
+            <div class="spinner"></div>
+        </div>
+    </div>
+
+    <!-- Memory Panel (optional - for debugging) -->
     <div class="memory-panel" id="memoryPanel">
-        <button class="close-memory" onclick="toggleMemory()">U+00d7</button>
+        <button class="close-memory" onclick="toggleMemory()">×</button>
         <div class="memory-content">
             <h3>Agent Memory State</h3>
             <div id="memoryDisplay"></div>
@@ -58,5 +71,21 @@
     <!-- Load scripts -->
     <script src="assets/js/chat.js"></script>
     <script src="assets/js/auto-expand-input.js"></script>
+    <script src="assets/js/conversation-end.js"></script>
+    
+    <!-- Debug helper (remove in production) -->
+    <script>
+        // Add debug commands to console
+        console.log('🔧 Debug Commands Available:');
+        console.log('debugConversationEnd() - Test the conversation end flow');
+        console.log('handleConversationEnd() - Manually trigger conversation end');
+        console.log('showThankYouAndClose() - Show thank you modal');
+        
+        // Listen for email sent in response
+        window.addEventListener('emailSent', function() {
+            console.log('📧 Email sent event received');
+            handleConversationEnd();
+        });
+    </script>
 </body>
 </html>

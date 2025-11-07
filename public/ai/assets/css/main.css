@@ -952,6 +952,13 @@ body {
 /* FAILSAFE: Ensure input hides when email sent - maximum specificity */
 .chat-container .chat-input-container[style*="display: none"],
 .chat-input-container.email-sent,
+.chat-input-container.conversation-ended,
 .chat-input-container.hidden {
     display: none !important;
+    visibility: hidden !important;
+    position: absolute !important;
+    left: -9999px !important;
+    pointer-events: none !important;
+    height: 0 !important;
+    overflow: hidden !important;
 }

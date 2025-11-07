@@ -52,41 +52,6 @@ document.addEventListener('DOMContentLoaded', async function() {
     handleIOSKeyboard();
 });
 
-function handleEmailSentSuccessfully() {
-    /*
-     Called when sendPersonalizedEmail() completes successfully to hide search bar/input container and marks conversation as ended.
-     */
-    console.log('[CHAT] Email sent successfully - hiding input');
-    
-    const inputContainer = document.querySelector('.chat-input-container');
-    const chatInput = document.querySelector('.chat-input');
-    const sendButton = document.querySelector('.send-button');
-    
-    if (inputContainer) {
-        // Hide the input
-        inputContainer.classList.add('email-sent');
-        
-        // Disable inputs (backup)
-        if (chatInput) {
-            chatInput.disabled = true;
-            chatInput.placeholder = '';
-        }
-        if (sendButton) {
-            sendButton.disabled = true;
-        }
-        
-        // Scroll to bottom
-        const chatMessages = document.querySelector('.chat-messages');
-        if (chatMessages) {
-            setTimeout(() => {
-                chatMessages.scrollTop = chatMessages.scrollHeight;
-            }, 100);
-        }
-        
-        console.log('[CHAT] Input container hidden - conversation ended');
-    }
-}
-
 // iOS keyboard handling 
 // Supports visualViewport API + fallbacks for older iOS
 function handleIOSKeyboard() {
@@ -354,17 +319,21 @@ async function sendMessage() {
 
         // Check if email was sent
         if (data.emailSent === true || data.conversationEnded === true) {
-            console.log('[CHAT] ⚠️ EMAIL SENT DETECTED - calling handleConversationEnd()');
-            
+            console.log('[CHAT] Email sent detected');
             addMessage(data.response, 'assistant');
             
-            setTimeout(() => {
-                console.log('[CHAT] Executing handleConversationEnd');
-                handleConversationEnd();
-            }, 500);
+            // Use the enhanced handler
+            handleEmailSentSuccessfully();
             
-            console.log('[CHAT] ✓ handleConversationEnd called');
-            return;
+            // Fallback: ensure it really happens
+            setTimeout(() => {
+                const input = document.querySelector('.chat-input-container');
+                if (input && input.style.display !== 'none') {
+                    console.warn('[CHAT] Fallback: Force hiding input');
+                    input.remove(); // Nuclear option
+                    handleConversationEnd();
+                }
+            }, 500);
         }
         
         if (data.error) {
@@ -621,69 +590,227 @@ async function resetMemory() {
     }
 }
 
-// ============================================
-// HANDLE CONVERSATION END (AFTER EMAIL SENT)
-// ============================================
+// Main function to handle conversation end after email is sent
 function handleConversationEnd() {
-    console.log('[CHAT] Conversation ended - hiding input and showing close button');
+    console.log('[CHAT] Starting conversation end sequence...');
     
-    // Hide the input container
+    // Method 1: Hide input container using multiple approaches for reliability
     const inputContainer = document.querySelector('.chat-input-container');
     if (inputContainer) {
-        inputContainer.style.display = 'none !important';  // FORCE with !important
-        console.log('[CHAT] Input container hidden');
+        // Use setAttribute for highest specificity
+        inputContainer.setAttribute('style', 'display: none !important; visibility: hidden !important; opacity: 0 !important; height: 0 !important; overflow: hidden !important;');
+        
+        // Also add multiple classes for CSS fallback
+        inputContainer.classList.add('email-sent', 'hidden', 'conversation-ended');
+        
+        // Remove from DOM flow completely
+        inputContainer.style.position = 'absolute';
+        inputContainer.style.left = '-9999px';
+        
+        console.log('[CHAT] Input container hidden with multiple methods');
     } else {
-        console.warn('[CHAT] Input container not found!');
+        console.error('[CHAT] CRITICAL: Input container not found!');
     }
     
-    // Show the conversation end container with close button
-    const endContainer = document.querySelector('.conversation-end-container');
-    if (endContainer) {
-        endContainer.style.display = 'flex';
-        setTimeout(() => {
-            endContainer.scrollIntoView({ behavior: 'smooth', block: 'end' });
-        }, 300);
-        console.log('[CHAT] Close button shown');
-    } else {
-        console.warn('[CHAT] End container not found!');
-    }
+    // Method 2: Create and inject the end container if it doesn't exist
+    let endContainer = document.querySelector('.conversation-end-container');
     
-    // Disable further input
+    if (!endContainer) {
+        console.log('[CHAT] End container not found, creating it...');
+        
+        // Create the end container dynamically
+        endContainer = document.createElement('div');
+        endContainer.className = 'conversation-end-container';
+        endContainer.innerHTML = `
+            <p class="end-message">
+                Thanks for chatting with eXIQ! Patrick will be in touch soon.
+            </p>
+            <button class="close-button" onclick="showThankYouAndClose()">
+                Close eXIQ Agent
+            </button>
+        `;
+        
+        // Insert it where the input container was
+        const chatContainer = document.querySelector('.chat-container') || document.querySelector('#chatContainer');
+        if (chatContainer) {
+            chatContainer.appendChild(endContainer);
+        } else {
+            console.error('[CHAT] Chat container not found!');
+            document.body.appendChild(endContainer);
+        }
+    }
+
+    // Show the end container with multiple methods
+    endContainer.style.display = 'flex';
+    endContainer.style.visibility = 'visible';
+    endContainer.style.opacity = '1';
+    endContainer.classList.remove('hidden');
+    endContainer.classList.add('visible', 'active');
+    
+    // Ensure it's visible by removing any hiding styles
+    endContainer.removeAttribute('hidden');
+    endContainer.style.removeProperty('display');
+    endContainer.style.display = 'flex'; // Re-apply flex
+    
+    // Method 3: Disable all inputs as backup
     const chatInput = document.querySelector('.chat-input');
+    const sendButton = document.querySelector('.send-button');
+    
     if (chatInput) {
         chatInput.disabled = true;
+        chatInput.style.display = 'none';
+        chatInput.value = '';
+        console.log('[CHAT] Chat input disabled and hidden');
     }
     
-    // ⚠️ DO NOT show modal here - only show when button clicked
+    if (sendButton) {
+        sendButton.disabled = true;
+        sendButton.style.display = 'none';
+        console.log('[CHAT] Send button disabled and hidden');
+    }
+    
+    // Method 4: Scroll to show the end container
+    setTimeout(() => {
+        if (endContainer) {
+            endContainer.scrollIntoView({ 
+                behavior: 'smooth', 
+                block: 'end',
+                inline: 'nearest' 
+            });
+            
+            // Also try to scroll the chat messages area
+            const chatMessages = document.querySelector('.chat-messages');
+            if (chatMessages) {
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+        }
+        console.log('[CHAT] Scrolled to end container');
+    }, 100);
+    
+    // Method 5: Add a final message to chat
+    addSystemMessage("📧 Email sent! Our conversation has ended. Patrick from FTC Global will be in touch soon.");
+    
+    // Log final state for debugging
+    console.log('[CHAT] Conversation end sequence complete');
+    console.log('[CHAT] Input container display:', inputContainer?.style.display);
+    console.log('[CHAT] End container display:', endContainer?.style.display);
+    
+    // Set a flag to prevent any further interactions
+    window.conversationEnded = true;
 }
 
+// Helper function to add system messages
+function addSystemMessage(text) {
+    const messagesContainer = document.getElementById('chatMessages') || document.querySelector('.chat-messages');
+    if (messagesContainer) {
+        const systemMsg = document.createElement('div');
+        systemMsg.className = 'message system-message';
+        systemMsg.style.cssText = 'text-align: center; color: #8b7aa8; font-style: italic; padding: 1rem; background: rgba(139, 122, 168, 0.1); border-radius: 8px; margin: 1rem 0;';
+        systemMsg.textContent = text;
+        messagesContainer.appendChild(systemMsg);
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    }
+}
 
-// ============================================
-// SHOW THANK YOU AND CLOSE WINDOW
-// ============================================
-function showThankYouAndClose() {
-    console.log('[CHAT] Showing thank you modal and closing');
+// Enhanced email sent handler that ensures conversation ends
+function handleEmailSentSuccessfully() {
+    console.log('[CHAT] Email sent successfully - triggering full conversation end');
     
-    // Show the thank you modal
-    const modal = document.querySelector('.thank-you-modal');
-    if (modal) {
-        modal.classList.add('visible');
+    // Call the main conversation end handler
+    handleConversationEnd();
+    
+    // Additional cleanup specific to email sent
+    const inputContainer = document.querySelector('.chat-input-container');
+    if (inputContainer) {
+        // Nuclear option: remove from DOM entirely after a delay
+        setTimeout(() => {
+            inputContainer.remove();
+            console.log('[CHAT] Input container removed from DOM');
+        }, 500);
+    }
+}
+
+// Show thank you modal and close/redirect
+function showThankYouAndClose() {
+    console.log('[CHAT] Starting thank you and close sequence...');
+    
+    // Method 1: Find or create the modal
+    let modal = document.querySelector('.thank-you-modal');
+    
+    if (!modal) {
+        console.log('[CHAT] Modal not found, creating it...');
+        
+        // Create modal dynamically
+        modal = document.createElement('div');
+        modal.className = 'thank-you-modal';
+        modal.innerHTML = `
+            <div class="modal-content">
+                <h2>Thank You!</h2>
+                <p>Your consultation summary has been sent. We'll be in touch soon!</p>
+                <div class="spinner"></div>
+            </div>
+        `;
+        document.body.appendChild(modal);
     }
     
-    // Wait 2 seconds, then close
+    // Method 2: Show modal with multiple approaches
+    modal.style.display = 'flex';
+    modal.style.visibility = 'visible';
+    modal.style.opacity = '1';
+    modal.classList.add('visible', 'active', 'show');
+    modal.classList.remove('hidden');
+    
+    // Force high z-index to ensure it's on top
+    modal.style.zIndex = '999999';
+    modal.style.position = 'fixed';
+    modal.style.top = '0';
+    modal.style.left = '0';
+    modal.style.width = '100%';
+    modal.style.height = '100%';
+    
+    console.log('[CHAT] Thank you modal displayed');
+    
+    // Method 3: Handle window closing/redirect
     setTimeout(() => {
-        console.log('[CHAT] Attempting to close window');
+        console.log('[CHAT] Attempting to close or redirect...');
         
-        // Try to close the window (works if opened via window.open())
-        window.close();
-  
-        // Fallback: Check if window is still open after 100ms
-        setTimeout(() => {
-            if (!window.closed) {
-                console.log('[CHAT] Cannot close window, redirecting to main site');
-                window.location.href = 'https://ftcglobal.ca';
+        // Try multiple close methods
+        try {
+            // Method 1: Standard close
+            if (window.close) {
+                window.close();
             }
-        }, 100);
+            
+            // Method 2: Self close
+            if (self.close) {
+                self.close();
+            }
+            
+            // Method 3: Opener close (if opened from another window)
+            if (window.opener && !window.opener.closed) {
+                window.opener.focus();
+                window.close();
+            }
+        } catch (e) {
+            console.log('[CHAT] Cannot close window:', e);
+        }
+        
+        // Fallback: Always redirect after trying to close
+        setTimeout(() => {
+            console.log('[CHAT] Redirecting to main site...');
+            
+            // Hide modal before redirect
+            if (modal) {
+                modal.innerHTML = '<div class="modal-content"><h2>Redirecting...</h2></div>';
+            }
+            
+            // Multiple redirect methods for compatibility
+            try {
+                window.location.href = 'https://ftcglobal.ca';
+            } catch (e) {
+                window.location = 'https://ftcglobal.ca';
+            }
+        }, 500);
     }, 2000);
 }
 
@@ -701,3 +828,35 @@ window.toggleMemory = toggleMemory;
 window.resetMemory = resetMemory;
 window.submitEmail = submitEmail;
 window.showThankYouAndClose = showThankYouAndClose;  
+window.handleConversationEnd = handleConversationEnd;
+window.handleEmailSentSuccessfully = handleEmailSentSuccessfully;
+window.debugConversationEnd = debugConversationEnd;
+
+// Also export to global scope for onclick handlers
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = {
+        handleConversationEnd,
+        showThankYouAndClose,
+        handleEmailSentSuccessfully,
+        debugConversationEnd
+    };
+}
+
+
+// Debug function to test the flow
+function debugConversationEnd() {
+    console.log('=== DEBUGGING CONVERSATION END ===');
+    console.log('Input container:', document.querySelector('.chat-input-container'));
+    console.log('End container:', document.querySelector('.conversation-end-container'));
+    console.log('Thank you modal:', document.querySelector('.thank-you-modal'));
+    console.log('Chat container:', document.querySelector('.chat-container'));
+    
+    // Test the flow
+    console.log('Testing handleConversationEnd...');
+    handleConversationEnd();
+    
+    setTimeout(() => {
+        console.log('Testing showThankYouAndClose...');
+        showThankYouAndClose();
+    }, 3000);
+}

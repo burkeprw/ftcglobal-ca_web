@@ -1,0 +1,304 @@
+/* ============================================
+   CONVERSATION END UI FIXES
+   Add this to your main.css or as a separate file
+   ============================================ */
+
+/* ============================================
+   NUCLEAR HIDE FOR INPUT CONTAINER
+   Multiple methods to ensure it's hidden
+   ============================================ */
+.chat-input-container.email-sent,
+.chat-input-container.hidden,
+.chat-input-container.conversation-ended,
+.chat-input-container[style*="display: none"],
+.chat-container .chat-input-container.email-sent {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    height: 0 !important;
+    max-height: 0 !important;
+    overflow: hidden !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    border: none !important;
+    position: absolute !important;
+    left: -9999px !important;
+    pointer-events: none !important;
+    z-index: -1 !important;
+}
+
+/* Also hide children when parent is hidden */
+.chat-input-container.email-sent *,
+.chat-input-container.hidden *,
+.chat-input-container.conversation-ended * {
+    display: none !important;
+    visibility: hidden !important;
+}
+
+/* ============================================
+   CONVERSATION END CONTAINER - ENSURE VISIBILITY
+   ============================================ */
+.conversation-end-container {
+    /* Hidden by default */
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem 1rem;
+    background: linear-gradient(135deg, rgba(26, 26, 26, 0.98) 0%, rgba(35, 35, 35, 0.98) 100%);
+    border-top: 2px solid rgba(139, 122, 168, 0.3);
+    gap: 1.5rem;
+    min-height: 120px;
+    width: 100%;
+    box-sizing: border-box;
+    
+    /* Smooth appearance */
+    animation: fadeInUp 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    position: relative;
+    z-index: 100;
+}
+
+/* When visible */
+.conversation-end-container.visible,
+.conversation-end-container.active,
+.conversation-end-container[style*="display: flex"] {
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+/* End message styling */
+.conversation-end-container .end-message {
+    color: #e0e0e0;
+    font-size: 16px;
+    text-align: center;
+    margin: 0;
+    line-height: 1.6;
+    max-width: 400px;
+    animation: fadeIn 0.5s ease;
+}
+
+/* Close button - make it prominent */
+.conversation-end-container .close-button {
+    padding: 1rem 2.5rem;
+    background: linear-gradient(135deg, #0066cc 0%, #0052a3 100%);
+    color: white;
+    border: none;
+    border-radius: 30px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 6px 20px rgba(0, 102, 204, 0.4);
+    min-width: 200px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    animation: pulseButton 2s infinite;
+}
+
+.conversation-end-container .close-button:hover {
+    background: linear-gradient(135deg, #0052a3 0%, #003d7a 100%);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(0, 102, 204, 0.6);
+}
+
+.conversation-end-container .close-button:active {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 15px rgba(0, 102, 204, 0.4);
+}
+
+/* ============================================
+   THANK YOU MODAL - MAXIMUM VISIBILITY
+   ============================================ */
+.thank-you-modal {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    background: rgba(0, 0, 0, 0.9) !important;
+    backdrop-filter: blur(10px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 999999 !important; /* Maximum z-index */
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+}
+
+/* When visible */
+.thank-you-modal.visible,
+.thank-you-modal.active,
+.thank-you-modal.show,
+.thank-you-modal[style*="display: flex"] {
+    opacity: 1 !important;
+    visibility: visible !important;
+    display: flex !important;
+}
+
+/* Modal content */
+.thank-you-modal .modal-content {
+    background: linear-gradient(135deg, #1a1f2e 0%, #232937 100%);
+    padding: 3rem 2rem;
+    border-radius: 20px;
+    text-align: center;
+    max-width: 450px;
+    width: 90%;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+    border: 2px solid rgba(0, 102, 204, 0.3);
+    animation: modalSlideUp 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+    position: relative;
+}
+
+.thank-you-modal h2 {
+    color: #ffffff;
+    font-size: 32px;
+    margin: 0 0 1rem 0;
+    font-weight: 300;
+    letter-spacing: -0.5px;
+    background: linear-gradient(90deg, #0066cc, #00a8cc);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.thank-you-modal p {
+    color: #b0b0b0;
+    font-size: 18px;
+    margin: 0 0 2rem 0;
+    line-height: 1.6;
+}
+
+/* Enhanced spinner */
+.thank-you-modal .spinner {
+    width: 50px;
+    height: 50px;
+    margin: 0 auto;
+    border: 3px solid rgba(255, 255, 255, 0.1);
+    border-top-color: #0066cc;
+    border-radius: 50%;
+    animation: spin 1s cubic-bezier(0.68, -0.55, 0.265, 1.55) infinite;
+}
+
+/* ============================================
+   ANIMATIONS
+   ============================================ */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes modalSlideUp {
+    from {
+        opacity: 0;
+        transform: translateY(50px) scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+@keyframes pulseButton {
+    0%, 100% {
+        box-shadow: 0 6px 20px rgba(0, 102, 204, 0.4);
+    }
+    50% {
+        box-shadow: 0 8px 30px rgba(0, 102, 204, 0.6);
+    }
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* ============================================
+   SYSTEM MESSAGES
+   ============================================ */
+.message.system-message {
+    text-align: center;
+    color: #8b7aa8;
+    font-style: italic;
+    padding: 1rem;
+    background: rgba(139, 122, 168, 0.1);
+    border-radius: 12px;
+    margin: 1rem auto;
+    max-width: 80%;
+    border: 1px solid rgba(139, 122, 168, 0.2);
+    animation: fadeIn 0.5s ease;
+}
+
+/* ============================================
+   MOBILE RESPONSIVE
+   ============================================ */
+@media (max-width: 768px) {
+    .conversation-end-container {
+        padding: 1.5rem 1rem;
+        min-height: 100px;
+    }
+    
+    .conversation-end-container .close-button {
+        width: 90%;
+        max-width: 300px;
+        font-size: 15px;
+        padding: 0.875rem 2rem;
+    }
+    
+    .thank-you-modal .modal-content {
+        padding: 2rem 1.5rem;
+        width: 85%;
+    }
+    
+    .thank-you-modal h2 {
+        font-size: 26px;
+    }
+    
+    .thank-you-modal p {
+        font-size: 16px;
+    }
+}
+
+/* ============================================
+   FORCE OVERRIDES (Last Resort)
+   Use these if normal styles aren't working
+   ============================================ */
+body.conversation-ended .chat-input-container {
+    display: none !important;
+}
+
+body.modal-open {
+    overflow: hidden;
+}
+
+body.modal-open .thank-you-modal {
+    display: flex !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+/* Ensure modal is always on top of everything */
+.thank-you-modal * {
+    z-index: 999999 !important;
+}
+
+/* Debug helper - uncomment to test */
+/*
+.debug-visible {
+    border: 3px solid red !important;
+    background: rgba(255, 0, 0, 0.1) !important;
+}
+*/
