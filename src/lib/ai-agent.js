@@ -511,11 +511,11 @@ async sendPersonalizedEmail(email, messages, challenges) {
     let displayName = null;
     
     // Try to extract from conversation
-    displayName = extractUserName(messages);
+    displayName = await this.extractUserName(messages);
     
     // If no name found, try email address
     if (!displayName) {
-        displayName = extractNameFromEmail(email);
+        displayName = await this.extractNameFromEmail(email);
     }
 
        /* // Get conversation details
@@ -572,7 +572,7 @@ async sendPersonalizedEmail(email, messages, challenges) {
                         <ul>
                             ${challenges.map(c => `<li>${c}</li>`).join('')}
                         </ul>
-                    ` : 'While I am not optimized to provide recommendations, I\'m writing to put you in touch with <strong>Patrick Burke</strong> (cc\'d), who will review this conversation and reach out with personalized advice specific to your business needs.</p>' }
+                    ` : '<p>While I am not optimized to provide recommendations, I\'m writing to put you in touch with <strong>Patrick Burke</strong> (cc\'d), who will review this conversation and reach out with personalized advice specific to your business needs.</p>' }
 
                     <p>I think the two of you will do great things together. Feel free to reach out to him directly at 778-288-3420.</p>
 
@@ -583,17 +583,20 @@ async sendPersonalizedEmail(email, messages, challenges) {
             })
         });
         
-        // Log to database
-        await this.env.DB.prepare(`
-            UPDATE conversations 
-            SET email_sent = TRUE, email_sent_at = CURRENT_TIMESTAMP 
-            WHERE id = ?
-        `).bind(this.conversation.id).run();
-
           if (response.ok) {
               const responseData = await response.json();
               console.log('[EMAIL] Successfully sent to:', email, 'with name:', displayName || 'none');
               console.log('[EMAIL] Resend response:', responseData);
+
+              // Log to database
+              await this.env.DB.prepare(`
+                  UPDATE conversations 
+                  SET email_sent = TRUE, email_sent_at = CURRENT_TIMESTAMP 
+                  WHERE id = ?
+              `).bind(this.conversation.id).run();
+
+              console.log('[EMAIL] Database updated: email_sent = TRUE');
+
               return true;
           } else {
               const errorData = await response.text();
