@@ -572,9 +572,7 @@ async sendPersonalizedEmail(email, messages, challenges) {
                         <ul>
                             ${challenges.map(c => `<li>${c}</li>`).join('')}
                         </ul>
-                    ` : }
-                    
-                    <p>While I am not optimized to provide recommendations, I'm writing to put you in touch with <strong>Patrick Burke</strong> (cc'd), who will review this conversation and reach out with personalized advice specific to your business needs.</p>
+                    ` : 'While I am not optimized to provide recommendations, I\'m writing to put you in touch with <strong>Patrick Burke</strong> (cc\'d), who will review this conversation and reach out with personalized advice specific to your business needs.</p>' }
 
                     <p>I think the two of you will do great things together. Feel free to reach out to him directly at 778-288-3420.</p>
 
